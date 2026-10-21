@@ -1,0 +1,49 @@
+{
+  "name": "garageflows-contract-generator",
+  "version": "1.0.0",
+  "description": "GarageFlows Contract Generator — Logiciel professionnel autonome de génération automatique de contrats d'abonnement GarageFlows",
+  "author": "GarageFlows",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "dist-electron/electron/main.js",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build:renderer": "vite build",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "build:examples": "tsx scripts/generate-examples.ts",
+    "build": "npm run build:examples && npm run build:renderer && npm run build:electron",
+    "dist": "npm run build && node scripts/prepare-dist.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.electron.json --noEmit"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "jszip": "^3.10.1",
+    "lucide-react": "^0.468.0",
+    "mammoth": "^1.8.0",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "3.11.174",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sql.js": "^1.12.0",
+    "tesseract.js": "^5.1.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@assistant-ai/electron-win32-x64": "28.3.3",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "7zip-bin": "5.2.0",
+    "electron": "npm:@assistant-ai/electron-win32-x64@28.3.3",
+    "electron-builder": "26.15.3",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "vitest": "^2.1.8"
+  }
+}

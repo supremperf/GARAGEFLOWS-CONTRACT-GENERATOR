@@ -1,0 +1,21 @@
+GARAGEFLOWS — CONTRAT D’ABONNEMENT
+
+CONTRAT D’ABONNEMENT GARAGEFLOWS
+Entre :
+L’entreprise {{ENTREPRISE_NOM}}, immatriculée sous le numéro {{ENTREPRISE_SIRET}}, dont le siège est situé au {{ENTREPRISE_ADRESSE}}, représentée par {{ENTREPRISE_REPRESENTANT}}.
+Et :
+{{CLIENT_PRENOM}} {{CLIENT_NOM}}, domicilié au {{CLIENT_ADRESSE}}, {{CLIENT_CODE_POSTAL}} {{CLIENT_VILLE}}, joignable au {{CLIENT_TELEPHONE}} et à l’adresse {{CLIENT_EMAIL}}.
+Le client {{CLIENT_NOM}} souscrit à l’abonnement {{ABONNEMENT_NOM}} pour un montant de {{ABONNEMENT_PRIX_TTC}} TTC par {{ABONNEMENT_PERIODICITE}}.
+Le prix hors taxes correspondant est de {{ABONNEMENT_PRIX_HT}}, TVA {{ABONNEMENT_TVA}}.
+Le nom du client {{CLIENT_NOM}} est rappelé pour la facturation, le prélèvement et la correspondance. Le client {{CLIENT_NOM}} reconnaît avoir pris connaissance des conditions figurant dans le présent modèle.
+Coordonnées bancaires du prestataire : IBAN {{ENTREPRISE_IBAN}}, BIC {{ENTREPRISE_BIC}}.
+La présente souscription prend effet le {{DATE_DEBUT}}. Fait à {{ENTREPRISE_VILLE}}, le {{DATE_SIGNATURE}}.
+Signature du client : {{SIGNATURE_CLIENT}}.
+Signature de l’entreprise : {{SIGNATURE_ENTREPRISE}}.
+Clause de conservation : aucune condition commerciale n’est ajoutée par le logiciel. Seules les variables identifiées sont remplacées.
+
+Désignation | Montant | Périodicité
+{{ABONNEMENT_NOM}} | {{ABONNEMENT_PRIX_TTC}} | {{ABONNEMENT_PERIODICITE}}
+Client | {{CLIENT_PRENOM}} {{CLIENT_NOM}} | {{CLIENT_EMAIL}}
+
+Document modèle — les clauses ci-dessus ne doivent pas être altérées par le générateur.

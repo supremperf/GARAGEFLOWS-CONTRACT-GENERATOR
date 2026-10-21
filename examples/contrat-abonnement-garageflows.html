@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Contrat GarageFlows</title>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; line-height: 1.6; max-width: 210mm; margin: 18mm auto; padding: 0 12mm; }
+    .doc-header { font-size: 12px; color: #64748b; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 20px; }
+    h2 { font-size: 16px; color: #0f172a; margin-top: 22px; margin-bottom: 8px; border-left: 3px solid #2563eb; padding-left: 10px; }
+    p { font-size: 13.5px; margin: 10px 0; text-align: justify; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+    th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
+    th { background: #f1f5f9; font-weight: 600; }
+    .doc-footer { font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 8px; margin-top: 32px; }
+  </style>
+</head>
+<body>
+  <div class="doc-header">GARAGEFLOWS — CONTRAT D’ABONNEMENT</div>
+  <h2>CONTRAT D’ABONNEMENT GARAGEFLOWS</h2>
+<p>Entre :</p>
+<p>L’entreprise {{ENTREPRISE_NOM}}, immatriculée sous le numéro {{ENTREPRISE_SIRET}}, dont le siège est situé au {{ENTREPRISE_ADRESSE}}, représentée par {{ENTREPRISE_REPRESENTANT}}.</p>
+<p>Et :</p>
+<p>{{CLIENT_PRENOM}} {{CLIENT_NOM}}, domicilié au {{CLIENT_ADRESSE}}, {{CLIENT_CODE_POSTAL}} {{CLIENT_VILLE}}, joignable au {{CLIENT_TELEPHONE}} et à l’adresse {{CLIENT_EMAIL}}.</p>
+<p>Le client {{CLIENT_NOM}} souscrit à l’abonnement {{ABONNEMENT_NOM}} pour un montant de {{ABONNEMENT_PRIX_TTC}} TTC par {{ABONNEMENT_PERIODICITE}}.</p>
+<p>Le prix hors taxes correspondant est de {{ABONNEMENT_PRIX_HT}}, TVA {{ABONNEMENT_TVA}}.</p>
+<p>Le nom du client {{CLIENT_NOM}} est rappelé pour la facturation, le prélèvement et la correspondance. Le client {{CLIENT_NOM}} reconnaît avoir pris connaissance des conditions figurant dans le présent modèle.</p>
+<p>Coordonnées bancaires du prestataire : IBAN {{ENTREPRISE_IBAN}}, BIC {{ENTREPRISE_BIC}}.</p>
+<p>La présente souscription prend effet le {{DATE_DEBUT}}. Fait à {{ENTREPRISE_VILLE}}, le {{DATE_SIGNATURE}}.</p>
+<p>Signature du client : {{SIGNATURE_CLIENT}}.</p>
+<p>Signature de l’entreprise : {{SIGNATURE_ENTREPRISE}}.</p>
+<p>Clause de conservation : aucune condition commerciale n’est ajoutée par le logiciel. Seules les variables identifiées sont remplacées.</p>
+  <table><tbody><tr><th>Désignation</th><th>Montant</th><th>Périodicité</th></tr><tr><td>{{ABONNEMENT_NOM}}</td><td>{{ABONNEMENT_PRIX_TTC}}</td><td>{{ABONNEMENT_PERIODICITE}}</td></tr><tr><td>Client</td><td>{{CLIENT_PRENOM}} {{CLIENT_NOM}}</td><td>{{CLIENT_EMAIL}}</td></tr></tbody></table>
+  <div class="doc-footer">Document modèle — les clauses ci-dessus ne doivent pas être altérées par le générateur.</div>
+</body>
+</html>

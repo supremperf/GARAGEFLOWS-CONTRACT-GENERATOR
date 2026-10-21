@@ -1,0 +1,7 @@
+Champ,Valeur,Contrôle
+Client,{{CLIENT_NOM}},
+Prénom,{{CLIENT_PRENOM}},
+Adresse,{{CLIENT_ADRESSE}},
+Prix TTC,{{ABONNEMENT_PRIX_TTC}},
+Total formule,,=B5
+Mention fixe,Ne pas modifier cette clause de tableau.,

@@ -3,7 +3,7 @@ import { ApiError, api, downloadUrl, fileToBase64 } from '../api';
 
 const STEPS = ['Modèle', 'Client', 'Informations', 'Variables', 'Aperçu', 'Export'];
 
-export default function GeneratorPage({ notify }: { notify: (m: string) => void }) {
+export default function GeneratorPage({ notify, initialTemplateId }: { notify: (m: string) => void; initialTemplateId?: string }) {
   const [step, setStep] = useState(1);
   const [templates, setTemplates] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
@@ -30,6 +30,7 @@ export default function GeneratorPage({ notify }: { notify: (m: string) => void 
     api.dictionary().then(setDictionary).catch(() => undefined);
   };
   useEffect(loadLists, []);
+  useEffect(() => { if (initialTemplateId) setTemplateId(initialTemplateId); }, [initialTemplateId]);
 
   const template = templates.find((item) => item.id === templateId);
 

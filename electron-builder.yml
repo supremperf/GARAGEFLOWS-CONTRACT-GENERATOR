@@ -1,0 +1,38 @@
+appId: com.garageflows.contractgenerator
+productName: GarageFlows Contract Generator
+copyright: Copyright © 2026 GarageFlows
+electronVersion: "28.3.3"
+electronDist: node_modules/@assistant-ai/electron-win32-x64/dist
+directories:
+  output: dist
+  buildResources: build
+files:
+  - dist-electron/**/*
+  - dist-renderer/**/*
+  - examples/**/*
+  - README_MODELES_CONTRATS.md
+  - package.json
+extraResources:
+  - from: examples
+    to: examples
+  - from: README_MODELES_CONTRATS.md
+    to: README_MODELES_CONTRATS.md
+  - from: resources/tessdata
+    to: tessdata
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  signAndEditExecutable: false
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: "GarageFlows Contract Generator"
+  artifactName: "GarageFlows-Contract-Generator-Setup.exe"
+asarUnpack:
+  - "**/node_modules/sql.js/dist/*.wasm"
+  - "**/node_modules/pdfjs-dist/**/*"

@@ -1,0 +1,11 @@
+node_modules/
+tools/
+vendor/
+dist/
+dist-renderer/
+dist-electron/
+release/
+build-temp/
+.cache/
+*.log
+.DS_Store

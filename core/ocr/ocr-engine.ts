@@ -1,6 +1,12 @@
 import fs from 'fs';
 import path from 'path';
 
+/** Keep the logical ASAR parent tree: physical unpacked workers cannot resolve packed dependencies. */
+export function resolveOcrWorkerPath(resolve: (specifier: string) => string = require.resolve): string {
+  // Electron 28 supports worker_threads entry points inside ASAR, including unpacked entries.
+  return resolve('tesseract.js/src/worker-script/node/index.js');
+}
+
 export interface OcrResult {
   text: string;
   confidence: number;
@@ -39,12 +45,10 @@ export async function runLocalOcrOnBuffer(
     try {
       const Tesseract = await import('tesseract.js');
       const lang = fs.existsSync(path.join(localLangPath as string, 'fra.traineddata')) ? 'fra' : 'eng';
-      const resolvedWorker = require.resolve('tesseract.js/src/worker-script/node/index.js');
-      const unpackedWorker = resolvedWorker.replace(/app\.asar([\\/])/, 'app.asar.unpacked$1');
       const worker = await Tesseract.createWorker(lang, 1, {
         langPath: localLangPath,
         gzip: false,
-        workerPath: fs.existsSync(unpackedWorker) ? unpackedWorker : resolvedWorker,
+        workerPath: resolveOcrWorkerPath(),
         cacheMethod: 'none',
         // The job promise rejects below; avoid Tesseract's second, uncaught throw.
         errorHandler: () => undefined,

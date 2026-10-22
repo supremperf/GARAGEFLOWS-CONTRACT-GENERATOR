@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight, ArrowUpRight, Clock3, FileText, Layers, MoreHorizontal, Plus, Sparkles, Trash2, Download, Eye, Users,
 } from 'lucide-react';
 import { api, downloadUrl, type DashboardData, type GeneratedContractRecord } from '../api';
 import type { PageId } from '../App';
+import FloatingPanel from '../FloatingPanel';
 
 function Sparkline({ points, color = '#4ea2ff', label }: { points: number[]; color?: string; label: string }) {
   const [hover, setHover] = useState<number | null>(null);
@@ -46,16 +47,10 @@ export default function DashboardPage({ onNavigate, onGenerate, notify }: {
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState('');
   const [menuFor, setMenuFor] = useState<string | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuAnchor, setMenuAnchor] = useState<HTMLButtonElement | null>(null);
 
   const load = () => { api.dashboard().then((d) => { setData(d); setError(''); }).catch((e) => setError(e.message)); };
   useEffect(() => { load(); }, []);
-  useEffect(() => {
-    const close = (e: MouseEvent) => { if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuFor(null); };
-    document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
-  }, []);
-
   const usage = useMemo(() => new Map<string, number>((data?.templateUsage || []).map((u) => [u.templateId, u.count] as [string, number])), [data]);
   if (error) return <div className="card stack"><p className="help">Le moteur local n’a pas répondu : {error}</p><button className="btn" onClick={load}>Réessayer</button></div>;
   if (!data) return <div className="card">Chargement des données locales…</div>;
@@ -140,7 +135,7 @@ export default function DashboardPage({ onNavigate, onGenerate, notify }: {
           {data.recentContracts.length === 0 ? (
             <div className="empty">Aucun contrat généré pour le moment.<br /><button className="btn" style={{ marginTop: 12 }} onClick={() => onGenerate()}>Générer mon premier contrat</button></div>
           ) : (
-            <div className="table-wrap flat" ref={menuRef}>
+            <div className="table-wrap flat" tabIndex={0} role="region" aria-label="Contrats récents">
               <table>
                 <thead><tr><th>Contrat</th><th>Client</th><th>Modèle</th><th>Date</th><th>Statut</th><th /></tr></thead>
                 <tbody>
@@ -151,13 +146,13 @@ export default function DashboardPage({ onNavigate, onGenerate, notify }: {
                       <td>{new Date(item.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
                       <td><span className="badge ok"><i className="dot" />Généré</span></td>
                       <td className="menu-cell">
-                        <button className="icon-btn" aria-label="Actions" onClick={() => setMenuFor(menuFor === item.id ? null : item.id)}><MoreHorizontal size={17} /></button>
+                        <button className="icon-btn" aria-label={`Actions : ${item.fileName}`} aria-expanded={menuFor === item.id} onClick={(event) => { setMenuAnchor(event.currentTarget); setMenuFor(menuFor === item.id ? null : item.id); }}><MoreHorizontal size={17} /></button>
                         {menuFor === item.id && (
-                          <div className="context-menu">
+                          <FloatingPanel anchor={menuAnchor} className="context-menu" label="Actions du contrat" onClose={() => setMenuFor(null)}>
                             <button onClick={() => { setMenuFor(null); onNavigate('history'); }}><Eye size={14} /> Voir dans l’historique</button>
                             <button onClick={() => { setMenuFor(null); downloadUrl(`/api/contracts/${item.id}/download`, item.fileName).catch((e: Error) => notify(e.message)); }}><Download size={14} /> Télécharger</button>
                             <button className="danger" onClick={() => removeContract(item)}><Trash2 size={14} /> Supprimer…</button>
-                          </div>
+                          </FloatingPanel>
                         )}
                       </td>
                     </tr>

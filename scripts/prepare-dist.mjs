@@ -60,11 +60,11 @@ for (const required of ['dist-renderer/index.html', 'dist-electron/electron/main
 }
 ok('Artefacts de compilation présents (renderer, main, preload, exemples)');
 
-const iconPath = path.join(root, 'build', 'icon.ico');
+const iconPath = path.join(root, 'public', 'branding', 'icon.ico');
 if (fs.existsSync(iconPath)) {
-  ok(`Icône Windows présente : build/icon.ico (${fs.statSync(iconPath).size} octets)`);
+  ok(`Icône Windows présente : public/branding/icon.ico (${fs.statSync(iconPath).size} octets)`);
 } else {
-  info('Icône build/icon.ico absente : electron-builder utilisera son icône par défaut (avertissement non bloquant).');
+  fail('Icône officielle absente. Exécutez npm run build:branding.');
 }
 
 // ---------- Sélection du binaire 7-Zip adapté à la plateforme ----------
@@ -153,7 +153,8 @@ info('Lancement d’electron-builder (Windows x64, NSIS)…');
 // Sous Windows natif, l'édition des ressources de l'exécutable (icône,
 // métadonnées) est active et ne requiert aucun certificat (signExecutable:
 // false dans electron-builder.yml). Hors Windows (compilation croisée),
-// rcedit exigerait Wine : on la désactive uniquement pour cette plateforme.
+// rcedit exigerait Wine : after-pack.cjs intègre et vérifie les ressources PE
+// sans Wine avant la compression NSIS.
 const builderArgs = isWindows
   ? 'npx electron-builder --win --x64 --publish never'
   : 'npx electron-builder --win --x64 --publish never -c.win.signAndEditExecutable=false';
@@ -174,3 +175,5 @@ if (!fs.existsSync(unpackedExe)) {
 }
 ok(`Exécutable Windows présent : dist/win-unpacked/GarageFlows Contract Generator.exe`);
 console.log(`\nInstallateur créé : ${installer} (${(size / (1024 * 1024)).toFixed(1)} Mo)`);
+
+execSync('npm run verify:dist', { stdio: 'inherit', env });

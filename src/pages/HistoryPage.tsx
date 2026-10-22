@@ -1,3 +1,4 @@
+import Modal from '../Modal';
 import { useEffect, useState } from 'react';
 import { api, downloadUrl, type GeneratedContractRecord } from '../api';
 
@@ -11,7 +12,7 @@ export default function HistoryPage({ notify }: { notify: (m: string) => void })
     <div className="stack">
       <section className="card">
         {items.length === 0 ? <div className="empty">Aucun contrat dans l’historique local.</div> : (
-          <div className="table-wrap">
+          <div className="table-wrap" tabIndex={0} role="region" aria-label="Historique des contrats">
             <table>
               <thead><tr><th>Fichier</th><th>Client</th><th>Modèle</th><th>Format</th><th>Fidélité</th><th>Date</th><th></th></tr></thead>
               <tbody>
@@ -23,11 +24,11 @@ export default function HistoryPage({ notify }: { notify: (m: string) => void })
                     <td>{item.exportFormat.toUpperCase()}</td>
                     <td>{item.report?.fidelityReport?.fidelityScore ?? '—'}/100</td>
                     <td>{new Date(item.createdAt).toLocaleString('fr-FR')}</td>
-                    <td className="row">
+                    <td className="table-actions"><div className="row">
                       <button className="btn-ghost" onClick={() => downloadUrl(`/api/contracts/${item.id}/download`, item.fileName).catch((e: Error) => notify(e.message))}>Télécharger</button>
                       <button className="btn-ghost" onClick={() => setOpen(item)}>Rapport</button>
                       <button className="btn-danger" onClick={() => { if (confirm('Supprimer cette entrée et le fichier généré ?')) api.deleteContract(item.id, true).then(load); }}>Supprimer</button>
-                    </td>
+                    </div></td>
                   </tr>
                 ))}
               </tbody>
@@ -36,9 +37,7 @@ export default function HistoryPage({ notify }: { notify: (m: string) => void })
         )}
       </section>
       {open && (
-        <div className="modal-back" onClick={() => setOpen(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="spread"><h3>Rapport de génération</h3><button className="btn-ghost" onClick={() => setOpen(null)}>Fermer</button></div>
+        <Modal title="Rapport de génération" onClose={() => setOpen(null)}>
             <div className="grid-3" style={{ marginTop: 12 }}>
               <div className="info-box">Champs détectés : {open.report.totalDetectedFields}</div>
               <div className="ok-box">Champs remplacés : {open.report.replacedFieldsCount}</div>
@@ -53,8 +52,7 @@ export default function HistoryPage({ notify }: { notify: (m: string) => void })
             <p className="help">{open.report.fidelityReport.summary}</p>
             {open.report.anomalies?.length > 0 && <div className="warn-box">{open.report.anomalies.join(' · ')}</div>}
             <div className="info-box">La génération technique ne constitue ni une validation juridique ni une signature qualifiée.</div>
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

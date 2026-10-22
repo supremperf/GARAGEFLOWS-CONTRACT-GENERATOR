@@ -5,15 +5,17 @@ electronVersion: "28.3.3"
 electronDist: node_modules/@assistant-ai/electron-win32-x64/dist
 directories:
   output: dist
-  buildResources: build
+  buildResources: public/branding
 files:
   - dist-electron/**/*
   - dist-renderer/**/*
   - examples/**/*
-  - build/icon.png
   - README_MODELES_CONTRATS.md
   - package.json
+afterPack: scripts/after-pack.cjs
 extraResources:
+  - from: public/branding
+    to: branding
   - from: examples
     to: examples
   - from: README_MODELES_CONTRATS.md
@@ -26,15 +28,14 @@ win:
       arch:
         - x64
   # Icône d'application multi-résolutions (scripts/generate-icon.mjs).
-  icon: build/icon.ico
-  # signExecutable false : aucune signature de code (pas de certificat requis),
-  # mais l'édition des ressources (icône + métadonnées de l'exécutable) reste
-  # active sous Windows natif. Sous Linux (compilation croisée), prepare-dist.mjs
-  # ajoute -c.win.signAndEditExecutable=false car rcedit exige Wine.
+  icon: public/branding/icon.ico
+  # Native resource editing on Windows; afterPack supplies identical resources
+  # for cross-builds without Wine. This is not an Authenticode signature.
   signExecutable: false
 nsis:
-  installerIcon: build/icon.ico
-  uninstallerIcon: build/icon.ico
+  installerIcon: public/branding/icon.ico
+  installerHeaderIcon: public/branding/icon.ico
+  uninstallerIcon: public/branding/icon.ico
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true

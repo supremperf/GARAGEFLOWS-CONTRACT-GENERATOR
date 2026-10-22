@@ -83,3 +83,28 @@ npm run dev
 L’interface Vite est servie sur le port 5173 et le moteur local sur le port 3001. En application installée, l’interface et l’API sont servies ensemble en local.
 
 Voir `README_MODELES_CONTRATS.md` pour préparer un modèle compatible.
+
+## Identité visuelle officielle
+
+L’image fournie est conservée sans modification dans `resources/branding/logo-official.png`.
+Les déclinaisons sont générées par `npm run build:branding` (également exécuté par `build` et `dist`) dans `public/branding/` : logo complet, recadrages de l’emblème et du lettrage, PNG 16 à 512 px et ICO Windows multi-résolutions.
+Le fond sombre est conservé pour préserver le halo cyan ; aucune suppression de fond ni recréation du logo n’est appliquée.
+
+Le hook `scripts/after-pack.cjs` intègre réellement l’icône aux ressources PE de l’application, y compris lors d’une compilation Linux sans Wine. `npm run verify:dist` relit les icônes de l’application et du Setup, contrôle les images dans ASAR/extraResources et extrait le contenu du Setup pour comparaison SHA-256. Ce contrôle est exécuté automatiquement à la fin de `npm run dist` et bloque la commande en cas d’incohérence.
+
+Voir [le rapport d’intégration du logo](RAPPORT_INTEGRATION_LOGO.md) pour les fichiers, les résultats réels, les captures actualisées et les vérifications restant à effectuer sur Windows. Les anciens rapports et captures numérotées décrivent la version antérieure et ne sont pas distribués avec le logiciel.
+
+## Version 1.0.1 — clavier et boutons
+
+Le contenu défile sans souris avec **↑ / ↓**, **PageUp / PageDown**, **Espace / Maj+Espace** et **Home / End**. Après un changement de rubrique, le focus va dans le contenu. Les champs de saisie conservent leurs touches habituelles ; Tab permet d’atteindre les actions et Échap de fermer les modales/menus.
+
+Les rangées de boutons reviennent à la ligne, les tableaux larges ont leur propre défilement et l’aperçu zoomé ne recouvre plus les actions.
+
+Tests navigateur reproductibles :
+
+```bash
+npx playwright install chromium
+npm run test:ui
+```
+
+Voir [le rapport clavier/interface](RAPPORT_CLAVIER_INTERFACE.md) pour les 15 scénarios, la matrice des sept dimensions, les limites réelles et l’empreinte du **nouveau Setup 1.0.1**. Les tests UI réussissent ; la suite unitaire globale conserve l’exception OCR préexistante décrite dans les rapports.

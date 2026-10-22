@@ -11,6 +11,10 @@ import ClientsPage from './pages/ClientsPage';
 import ProfilePage from './pages/ProfilePage';
 import HistoryPage from './pages/HistoryPage';
 import SettingsPage from './pages/SettingsPage';
+import Brand from './Brand';
+import FloatingPanel from './FloatingPanel';
+import { installKeyboardScrolling } from './keyboard-scroll';
+import { APP_VERSION } from './version';
 
 export type PageId = 'dashboard' | 'generate' | 'templates' | 'clients' | 'profile' | 'history' | 'settings';
 
@@ -39,6 +43,7 @@ export default function App() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [generateTemplateId, setGenerateTemplateId] = useState<string | undefined>();
   const [generateKey, setGenerateKey] = useState(0);
+  const contentRef = useRef<HTMLElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
@@ -54,23 +59,21 @@ export default function App() {
     api.dashboard().then((d) => setNotifications(d.notifications || [])).catch(() => undefined);
   };
   useEffect(refreshChrome, [page]);
+  useEffect(() => installKeyboardScrolling(() => contentRef.current), []);
+  useEffect(() => {
+    contentRef.current?.focus({ preventScroll: true });
+    contentRef.current?.scrollTo({ top: 0 });
+  }, [page]);
 
   useEffect(() => {
-    const close = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false);
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
-      if (userRef.current && !userRef.current.contains(e.target as Node)) setUserOpen(false);
-    };
     const keys = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         document.querySelector<HTMLInputElement>('.global-search input')?.focus();
       }
-      if (e.key === 'Escape') { setSearchOpen(false); setNotifOpen(false); setUserOpen(false); }
     };
-    document.addEventListener('mousedown', close);
     document.addEventListener('keydown', keys);
-    return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', keys); };
+    return () => { document.removeEventListener('keydown', keys); };
   }, []);
 
   useEffect(() => {
@@ -97,14 +100,14 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#page-content" onClick={(event) => { event.preventDefault(); contentRef.current?.focus(); }}>Aller au contenu</a>
       <aside className="sidebar">
         <div className="brand">
-          <div className="mark gf-logo">GF</div>
-          <div><h1>GarageFlows</h1><p>Contract Generator</p></div>
+          <Brand />
         </div>
         <nav className="nav" aria-label="Navigation principale">
           {NAV.map((item) => { const Icon = item.icon; return (
-            <button key={item.id} className={page === item.id ? 'active' : ''} onClick={() => setPage(item.id)} aria-current={page === item.id ? 'page' : undefined}>
+            <button key={item.id} className={page === item.id ? 'active' : ''} onClick={() => { setPage(item.id); contentRef.current?.focus({ preventScroll: true }); }} aria-label={item.label} title={item.label} aria-current={page === item.id ? 'page' : undefined}>
               <Icon size={19} /><span>{item.label}</span>
             </button> ); })}
         </nav>
@@ -112,7 +115,7 @@ export default function App() {
           <p>Des contrats<br />plus simples.<br />Un garage plus fort.</p>
           <svg viewBox="0 0 200 60" preserveAspectRatio="none"><path d="M0,48 C40,20 70,55 105,32 C140,10 165,38 200,14" fill="none" stroke="#4ea2ff" strokeWidth="2.5" /><path d="M0,55 C45,35 80,58 115,42 C150,26 175,45 200,28" fill="none" stroke="#2563eb" strokeWidth="2" opacity=".6" /></svg>
         </div>
-        <div className="sidebar-foot"><strong>GarageFlows</strong><span>Contract Generator</span><span>v1.0.0</span></div>
+        <div className="sidebar-foot"><strong>GarageFlows</strong><span>Contract Generator</span><span>v{APP_VERSION}</span></div>
       </aside>
 
       <main className="workspace">
@@ -120,17 +123,24 @@ export default function App() {
           <div className="global-search" ref={searchRef}>
             <Search size={17} />
             <input value={query} onChange={(e) => setQuery(e.target.value)} onFocus={() => hits.length && setSearchOpen(true)}
-              placeholder="Rechercher un client, un contrat, un modèle..." aria-label="Recherche globale" />
-            <kbd>⌘ K</kbd>
+              placeholder="Rechercher un client, un contrat, un modèle..." aria-label="Recherche globale"
+              aria-controls={searchOpen ? 'global-search-results' : undefined} aria-expanded={searchOpen} aria-keyshortcuts="Control+K Meta+K"
+              onKeyDown={(event) => {
+                if (event.key === 'ArrowDown' && searchOpen) {
+                  event.preventDefault();
+                  document.getElementById('global-search-results')?.querySelector('button')?.focus();
+                }
+              }} />
+            <kbd>Ctrl K</kbd>
             {searchOpen && query.trim() && (
-              <div className="search-results">
+              <FloatingPanel id="global-search-results" anchor={searchRef.current} className="search-results" label="Résultats de recherche" onClose={() => setSearchOpen(false)} preserveFocus matchWidth>
                 {hits.length === 0 ? <p className="search-empty">Aucun résultat pour « {query} » dans vos données locales.</p> :
                   hits.map((h) => (
                     <button key={h.id} onClick={() => { setSearchOpen(false); setQuery(''); if (h.templateId) goGenerate(h.templateId); else setPage(h.page); }}>
                       <span className="badge blue">{h.kind}</span><span><strong>{h.label}</strong>{h.detail && <small>{h.detail}</small>}</span>
                     </button>
                   ))}
-              </div>
+              </FloatingPanel>
             )}
           </div>
           <div className="top-actions">
@@ -138,11 +148,11 @@ export default function App() {
               <i className="dot" />{online ? 'Fonctionne en local' : 'Moteur local indisponible'}<small>Toutes vos données restent sur cet appareil</small>
             </span>
             <div className="pop-wrap" ref={notifRef}>
-              <button className="icon-btn bell" aria-label="Notifications" onClick={() => setNotifOpen(!notifOpen)}>
+              <button className="icon-btn bell" aria-label="Notifications" aria-expanded={notifOpen} onClick={() => { setNotifOpen(!notifOpen); setUserOpen(false); setSearchOpen(false); }}>
                 <Bell size={19} />{notifications.length > 0 && <i className="bell-dot" />}
               </button>
               {notifOpen && (
-                <div className="popover">
+                <FloatingPanel anchor={notifRef.current} className="popover" label="Notifications" onClose={() => setNotifOpen(false)}>
                   <h4>Activité réelle</h4>
                   {notifications.length === 0 ? <p className="help">Aucun événement enregistré pour le moment.</p> :
                     notifications.map((n) => (
@@ -150,27 +160,28 @@ export default function App() {
                         <strong>{n.title}</strong><span>{n.detail}</span><small>{new Date(n.date).toLocaleString('fr-FR')}</small>
                       </button>
                     ))}
-                </div>
+                </FloatingPanel>
               )}
             </div>
             <div className="pop-wrap" ref={userRef}>
-              <button className="user-chip" onClick={() => setUserOpen(!userOpen)}>
+              <button className="user-chip" aria-label={`Menu utilisateur : ${displayName}`} aria-expanded={userOpen} onClick={() => { setUserOpen(!userOpen); setNotifOpen(false); setSearchOpen(false); }}>
                 <span className="avatar">{initials}</span>
                 <span className="user-meta"><strong>{displayName}</strong><small>{garage}</small></span>
                 <ChevronDown size={16} />
               </button>
               {userOpen && (
-                <div className="popover right">
+                <FloatingPanel anchor={userRef.current} className="popover right" label="Menu utilisateur" onClose={() => setUserOpen(false)}>
                   <button className="notif" onClick={() => { setUserOpen(false); setPage('profile'); }}><strong><Building2 size={14} /> Mes informations</strong><span>Identité et abonnement GarageFlows</span></button>
                   <button className="notif" onClick={() => { setUserOpen(false); setPage('settings'); }}><strong><Settings size={14} /> Paramètres</strong><span>Sauvegardes et journaux locaux</span></button>
                   <button className="notif" onClick={() => { setUserOpen(false); refreshChrome(); notify(online ? 'Moteur local actif : vos données restent sur cet appareil.' : 'Moteur local indisponible.'); }}><strong><LogOut size={14} /> État du poste</strong><span>{online ? 'Fonctionne en local' : 'Indisponible'}</span></button>
-                </div>
+                </FloatingPanel>
               )}
             </div>
           </div>
         </header>
 
-        <section className="content" key={page} tabIndex={-1} data-scroll-region="main" aria-label="Contenu de la page">
+        <p id="scroll-help" className="sr-only">Défilement avec les flèches haut et bas, Page précédente et suivante, Espace, Début et Fin. Dans un champ de saisie, les touches conservent leur fonction habituelle.</p>
+        <section ref={contentRef} id="page-content" className="content" key={page} tabIndex={0} data-scroll-region="main" aria-label="Contenu de la page" aria-describedby="scroll-help">
           {page === 'dashboard' && <DashboardPage onNavigate={setPage} onGenerate={goGenerate} notify={notify} />}
           {page === 'generate' && <GeneratorPage key={generateKey} notify={notify} initialTemplateId={generateTemplateId} />}
           {page === 'templates' && <TemplatesPage notify={notify} />}

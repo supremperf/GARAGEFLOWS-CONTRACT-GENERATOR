@@ -1,0 +1,4 @@
+html, body { margin: 0; min-height: 100%; background: #020b19; color: #dbeafe; font-family: 'Segoe UI', sans-serif; }
+.startup { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px; box-sizing: border-box; text-align: center; }
+.startup img { width: min(380px, 85vw); height: auto; object-fit: contain; }
+.startup p { font-size: 14px; color: #9db1cc; }

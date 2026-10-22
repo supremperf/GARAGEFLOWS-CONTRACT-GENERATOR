@@ -1,12 +1,9 @@
 /**
  * Défilement au clavier — logique pure et testable.
  *
- * Contexte : `body { overflow: hidden }` et la zone principale de contenu
- * (`.content { overflow-y: auto }`) n'est pas focalisable ; Chromium/Electron
- * ne fait donc défiler ni le document ni cette zone avec les flèches lorsqu'elle
- * n'a pas le focus clavier. Le gestionnaire installé dans App.tsx s'appuie sur
- * ces fonctions pour choisir la bonne zone et la bonne amplitude, exactement
- * comme le défilement natif d'une page web.
+ * Le document est fixe (body overflow:hidden). keyboard-scroll.ts relie ces
+ * fonctions aux événements réels pour faire défiler la zone principale, un
+ * panneau imbriqué ou une modale sans détourner les touches des formulaires.
  */
 
 export type ScrollCommand =

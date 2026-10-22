@@ -7,10 +7,17 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' http: https: ws: wss:;"
     />
+    <link rel="icon" type="image/x-icon" href="./branding/icon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="./branding/icon-32.png" />
+    <link rel="stylesheet" href="/branding/loading.css" />
     <title>GarageFlows Contract Generator — Génération Automatique de Contrats</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><main class="startup" role="status" aria-live="polite">
+      <img src="./branding/logo-lockup.png" width="1130" height="775" alt="GarageFlows Contract Generator" />
+      <p>Chargement de votre espace de travail…</p>
+      <noscript>JavaScript doit être activé pour démarrer l’application.</noscript>
+    </main></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -32,6 +32,9 @@ declare module 'electron' {
   }
 
   export interface BrowserWindowOptions {
+    show?: boolean;
+    frame?: boolean;
+    resizable?: boolean;
     width?: number;
     height?: number;
     minWidth?: number;
@@ -51,14 +54,20 @@ declare module 'electron' {
   export class BrowserWindow {
     constructor(options: BrowserWindowOptions);
     loadURL(url: string): Promise<void>;
+    loadFile(filePath: string): Promise<void>;
+    once(event: 'ready-to-show', listener: () => void): void;
+    show(): void;
+    close(): void;
     webContents: {
       setWindowOpenHandler(
-        handler: (details: { url: string }) => { action: 'allow' | 'deny' }
+        handler: (details: { url: string }) => { action: 'allow' | 'deny'; overrideBrowserWindowOptions?: BrowserWindowOptions }
       ): void;
     };
   }
 
   export const app: {
+    readonly isPackaged: boolean;
+    setAppUserModelId(id: string): void;
     whenReady(): Promise<void>;
     quit(): void;
     on(event: 'window-all-closed' | 'activate', listener: () => void): void;
@@ -67,6 +76,7 @@ declare module 'electron' {
   };
 
   export const dialog: {
+    showErrorBox(title: string, content: string): void;
     showOpenDialog(options: OpenDialogOptions): Promise<OpenDialogResult>;
     showSaveDialog(options: SaveDialogOptions): Promise<SaveDialogResult>;
   };

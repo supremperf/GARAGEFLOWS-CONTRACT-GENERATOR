@@ -1,3 +1,4 @@
+import FilePicker from '../FilePicker';
 import { useEffect, useRef, useState } from 'react';
 import { api, fileToBase64, type CustomVariableDefinition, type ProfessionalProfile, type SubscriptionConfig } from '../api';
 
@@ -86,14 +87,12 @@ export default function ProfilePage({ notify }: { notify: (m: string) => void })
             if (canvas && ctx) { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
             setProfile({ ...profile, signatureDessinee: '' });
           }}>Effacer</button>
-          <label className="btn-ghost">Importer une image
-            <input hidden type="file" accept="image/png,image/jpeg" onChange={async (e) => {
+          <FilePicker className="btn-ghost" accept="image/png,image/jpeg" onChange={async (e) => {
               const file = e.target.files?.[0];
               if (!file) return;
               const base64 = await fileToBase64(file);
               setProfile({ ...profile, signatureImage: `data:${file.type};base64,${base64}` });
-            }} />
-          </label>
+            }}>Importer une image</FilePicker>
         </div>
         {(profile.signatureDessinee || profile.signatureImage) && <div className="ok-box">Signature enregistrée localement, prête à être réutilisée.</div>}
         <button className="btn" onClick={() => api.saveProfile(profile).then((saved) => { setProfile(saved); notify('Informations professionnelles enregistrées.'); }).catch((e: Error) => notify(e.message))}>Enregistrer mes informations</button>

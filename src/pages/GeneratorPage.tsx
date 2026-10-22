@@ -1,3 +1,4 @@
+import FilePicker from '../FilePicker';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ApiError, api, downloadUrl, fileToBase64,
@@ -120,8 +121,7 @@ export default function GeneratorPage({ notify, initialTemplateId }: { notify: (
         <section className="stack">
           <div className="spread">
             <p className="help">Choisissez un modèle déjà analysé. Le fichier original reste intact.</p>
-            <label className="btn">Importer
-              <input hidden type="file" onChange={async (e) => {
+            <FilePicker className="btn" onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
                 const base64 = await fileToBase64(file);
@@ -129,8 +129,7 @@ export default function GeneratorPage({ notify, initialTemplateId }: { notify: (
                 notify('Modèle importé.');
                 await loadLists();
                 setTemplateId(created.id);
-              }} />
-            </label>
+              }}>Importer</FilePicker>
           </div>
           <div className="template-grid">
             {templates.map((tpl) => (
@@ -190,7 +189,7 @@ export default function GeneratorPage({ notify, initialTemplateId }: { notify: (
         <section className="card stack">
           <h3>Variables détectées</h3>
           <p className="help">Chaque XXX est une variable distincte. Un identifiant {'{{CLIENT_NOM}}'} répété partage la même valeur.</p>
-          <div className="table-wrap">
+          <div className="table-wrap" tabIndex={0} role="region" aria-label="Variables du contrat">
             <table>
               <thead><tr><th>Détectée</th><th>Champ</th><th>Valeur</th><th>Occ.</th><th>Confiance</th><th>Lieu</th><th>OK</th></tr></thead>
               <tbody>
@@ -230,13 +229,13 @@ export default function GeneratorPage({ notify, initialTemplateId }: { notify: (
             <button className="btn-ghost" onClick={() => setPage(Math.max(0, page - 1))}>Page précédente</button>
             <span>Page {page + 1} / {preview.previewPages.length}</span>
             <button className="btn-ghost" onClick={() => setPage(Math.min(preview.previewPages.length - 1, page + 1))}>Page suivante</button>
-            <button className="btn-ghost" onClick={() => setZoom(Math.max(0.7, zoom - 0.1))}>−</button>
-            <button className="btn-ghost" onClick={() => setZoom(Math.min(1.4, zoom + 0.1))}>+</button>
+            <button className="btn-ghost" aria-label="Réduire le zoom" onClick={() => setZoom(Math.max(0.7, zoom - 0.1))}>−</button>
+            <button className="btn-ghost" aria-label="Augmenter le zoom" onClick={() => setZoom(Math.min(1.4, zoom + 0.1))}>+</button>
             <input className="input" placeholder="Rechercher dans l’aperçu" value={search} onChange={(e) => setSearch(e.target.value)} />
             <button className="btn-ghost" onClick={() => setCompare(!compare)}>{compare ? 'Masquer la comparaison' : 'Comparer au modèle'}</button>
           </div>
           <div className="help">Surlignage vert : valeur insérée. Surlignage rose : champ encore vide. Cet aperçu reflète le texte qui sera exporté.</div>
-          <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}>
+          <div className="preview-viewport" tabIndex={0} aria-label="Aperçu du contrat"><div className="preview-zoom" style={{ zoom }}>
             <article className="sheet">
               {preview.previewPages[page]?.headers?.map((h: string) => <div key={h} className="header-line">{h}</div>)}
               {visibleParagraphs.map((p, i: number) => (
@@ -252,7 +251,7 @@ export default function GeneratorPage({ notify, initialTemplateId }: { notify: (
               ))}
               {preview.previewPages[page]?.footers?.map((f: string) => <div key={f} className="footer-line">{f}</div>)}
             </article>
-          </div>
+          </div></div>
         </section>
       )}
 

@@ -1,0 +1,208 @@
+{
+  "stats": {
+    "startTime": "2026-10-22T18:28:12.488Z",
+    "duration": 279984.65599999996,
+    "expected": 49,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "test": "champ Nom* : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "champ Prénom : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "champ Lieu de naissance : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "champ Téléphone : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "champ E-mail : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "champ Adresse : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "champ Complément : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "champ Code postal : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "champ Ville : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "champ Pays : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "champ Entreprise : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "champ Forme juridique : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "champ SIRET : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "champ TVA intracommunautaire : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "champ Représentant légal : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "champ Fonction : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "champ Abonnement : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "champ Prix TTC : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "champ Notes : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "champ Champ personnalisé : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "champ Valeur du champ personnalisé : clic, focus, saisie, sélection et modification",
+      "ok": true
+    },
+    {
+      "test": "calendrier Date de naissance : ouverture souris et choix clavier d'une date",
+      "ok": true
+    },
+    {
+      "test": "calendrier Date de souscription : ouverture souris et choix clavier d'une date",
+      "ok": true
+    },
+    {
+      "test": "calendrier Date de début : ouverture souris et choix clavier d'une date",
+      "ok": true
+    },
+    {
+      "test": "civilité, fréquence, paiement : menus natifs ouverts et sélectionnés au clavier",
+      "ok": true
+    },
+    {
+      "test": "Tab et Maj+Tab parcourent tous les champs sans perte de valeurs ; copier-coller",
+      "ok": true
+    },
+    {
+      "test": "Ajouter ne soumet pas le client ; Entrée ajoute le champ personnalisé",
+      "ok": true
+    },
+    {
+      "test": "nom obligatoire, erreur serveur visible et formulaire conservé",
+      "ok": true
+    },
+    {
+      "test": "échec réseau : erreur explicite, aucune confirmation mensongère, saisie conservée",
+      "ok": true
+    },
+    {
+      "test": "tous les contrôles accessibles sans overlay à 1440px",
+      "ok": true
+    },
+    {
+      "test": "tous les contrôles accessibles sans overlay à 900px",
+      "ok": true
+    },
+    {
+      "test": "tous les contrôles accessibles sans overlay à 375px",
+      "ok": true
+    },
+    {
+      "test": "client complet et minimal : SQLite réel, anti-double-submit, édition, redémarrage du moteur",
+      "ok": true
+    },
+    {
+      "test": "flèches, PageUp/Down, Espace, Maj+Espace, Début/Fin après navigation",
+      "ok": true
+    },
+    {
+      "test": "saisie, sélections et activation des boutons ne déclenchent pas le scroll personnalisé",
+      "ok": true
+    },
+    {
+      "test": "onglets de navigation compacts et actions d’import sont accessibles au clavier",
+      "ok": true
+    },
+    {
+      "test": "modale : scroll isolé, focus piégé, Échap et restauration du focus",
+      "ok": true
+    },
+    {
+      "test": "rapport : modal natif défilant et fermeture par Échap",
+      "ok": true
+    },
+    {
+      "test": "aperçu et zoom : barre d’actions séparée du document, boutons toujours accessibles",
+      "ok": true
+    },
+    {
+      "test": "journal imbriqué : les touches défilent le panneau ciblé, pas la page derrière",
+      "ok": true
+    },
+    {
+      "test": "recherche : résultats accessibles par la flèche bas et fermeture par Échap",
+      "ok": true
+    },
+    {
+      "test": "Fin atteint le bas après le chargement réel retardé des clients",
+      "ok": true
+    },
+    {
+      "test": "aucun chevauchement ni débordement des boutons : 1440×900",
+      "ok": true
+    },
+    {
+      "test": "aucun chevauchement ni débordement des boutons : 1100×720",
+      "ok": true
+    },
+    {
+      "test": "aucun chevauchement ni débordement des boutons : 900×650",
+      "ok": true
+    },
+    {
+      "test": "aucun chevauchement ni débordement des boutons : 600×720",
+      "ok": true
+    },
+    {
+      "test": "aucun chevauchement ni débordement des boutons : 375×667",
+      "ok": true
+    },
+    {
+      "test": "aucun chevauchement ni débordement des boutons : 320×568",
+      "ok": true
+    },
+    {
+      "test": "aucun chevauchement ni débordement des boutons : 1100×480",
+      "ok": true
+    }
+  ]
+}

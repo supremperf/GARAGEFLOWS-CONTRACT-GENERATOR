@@ -227,3 +227,6 @@ button, a, input, select, textarea { scroll-margin: 12px; }
 .preview-viewport { max-width: 100%; max-height: 75dvh; overflow: auto; border-radius: 4px; padding: 8px; }
 .preview-zoom { width: min(820px,100%); margin-inline: auto; }
 .preview-viewport .sheet { width: 100%; overflow-wrap: anywhere; padding: clamp(20px, 5vw, 58px); }
+
+/* Preserve the existing client-card layout while grouping pending form controls. */
+.client-fields { border: 0; margin: 0; padding: 0; min-width: 0; }

@@ -89,3 +89,22 @@ Tous les contrôles exécutables dans cet environnement passent (types, lint 0 e
 **Correction (sans `--force` ni `--legacy-peer-deps`)** : alignement sur la ligne maintenue cohérente — `eslint@^9.39.5` + `@eslint/js@^9.39.5` + `typescript-eslint@^8.72.0` — et régénération incrémentale du `package-lock.json` par `npm install` standard. La montée vers ESLint 10 a été écartée à ce stade : elle imposerait de revalider l'ensemble de la chaîne flat config sans bénéfice fonctionnel, la ligne 9.39 étant la version maintenue de sa branche.
 
 **Vérifications réelles** : `npm install` OK · suppression de `node_modules` + `npm ci` OK · suppression + `npm install` OK · `npm ls eslint @eslint/js typescript-eslint` propre · `npx eslint .` 0 erreur · typecheck OK · tests 28/28 · `npm run build` OK · `npm run dist` OK → `dist/GarageFlows-Contract-Generator-Setup.exe` (106,7 Mo, contenu app.asar vérifié : main, preload, renderer, exemples).
+
+---
+
+## Addendum — 22 octobre 2026 (2) : binaires natifs Windows (Rollup/esbuild) et chaîne canvas
+
+**Problème rapporté (Windows 10, poste utilisateur)** : `npm run dist` échoue à `build:renderer` — `Cannot find module @rollup/rollup-win32-x64-msvc` (bug npm #4828).
+
+**Cause racine prouvée** : le `package-lock.json` régénéré sous Linux ne contenait plus que les variantes **Linux** des dépendances optionnelles natives (`@rollup/rollup-linux-x64-*`, `@esbuild/linux-x64`) ; toutes les variantes Windows/Darwin avaient été élaguées de l'arbre verrouillé. Sur Windows, npm ne pouvait donc pas installer le binaire MSVC correspondant à Rollup 4.x — le module est déclaré en `optionalDependencies` par Rollup mais absent des entrées du lock.
+
+**Corrections (aucune version arbitraire, optionnels conservés)** :
+1. `optionalDependencies` explicites aux versions exactes de l'arbre résolu : `@rollup/rollup-win32-x64-msvc@4.65.0` (version de Rollup résolue par Vite 6.4.5) et `@esbuild/win32-x64@0.25.12` (version d'esbuild de Vite). npm les ignore automatiquement hors Windows (os/cpu).
+2. Lockfile régénéré **complet et multi-plateforme** (25 variantes `@rollup/rollup-*`, toutes les variantes `@esbuild/*` pour les deux versions présentes 0.25.12 et 0.28.2) avec npm 11 (le npm 10.9.8 de l'environnement d'audit déclenche son bug arborist `edgesOut` en régénération à froid ; le lock v3 produit est exploité sans erreur par npm 10.9.8 : `npm ci` et `npm install` vérifiés).
+3. Chaîne `pdfjs-dist → canvas@2 → @mapbox/node-pre-gyp → tar@6.2.1 (CRITICAL)` éliminée : `overrides` `canvas@^3.2.3` (node-canvas 3 utilise prebuild-install, aucun avis GHSA ; canvas n'est qu'une dépendance **optionnelle** de pdfjs, inutilisée par notre extraction de texte — vérifié par les tests moteur).
+
+**Preuve de résolution Windows** : installation simulée `npm install --os=win32 --cpu=x64` dans un répertoire vierge à partir du lock livré → `@rollup/rollup-win32-x64-msvc@4.65.0` installé avec son binaire `rollup.win32-x64-msvc.node`, ainsi que `@esbuild/win32-x64` 0.25.12 et 0.28.2.
+
+**Revalidé après correction** : `npm ci` + `npm install` (npm système, sans flag), `npm ls vite rollup`, imports Rollup/Vite, typecheck, ESLint 0 erreur, tests 28/28, `npm run build` ×3, `npm run dist` → `GarageFlows-Contract-Generator-Setup.exe` (106,7 Mo), exports PDF/DOCX réels re-testés via l'API.
+
+**Vulnérabilités restantes** : voir l'audit relancé après correction (récapitulatif dans le rapport de mission) — les chaînes builder (dev uniquement) et les réserves déjà documentées (xlsx, pdfjs ≤ 4.1.392 neutralisé par configuration, sprintf-js sans correctif) subsistent sans changement de statut.

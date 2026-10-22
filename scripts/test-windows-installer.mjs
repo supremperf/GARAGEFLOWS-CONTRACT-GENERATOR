@@ -36,9 +36,32 @@ function run(file, args) {
 function snapshot() {
   return Object.fromEntries(fs.readdirSync(profile, { recursive: true }).filter(p => fs.statSync(path.join(profile, p)).isFile()).map(p => [p, createHash('sha256').update(fs.readFileSync(path.join(profile, p))).digest('hex')]));
 }
+async function deadline(promise, operation, milliseconds = 120000) {
+  report.activeOperation = operation;
+  let timer;
+  try {
+    return await Promise.race([promise, new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error(`${operation} timed out; last runtime step: ${report.lastRuntimeStep || 'none'}`)), milliseconds);
+    })]);
+  } finally { clearTimeout(timer); }
+}
 let electronApp;
+async function closeInstalledApp() {
+  if (!electronApp) return;
+  const current = electronApp;
+  electronApp = null;
+  try { await deadline(current.close(), 'close installed Electron', 30000); }
+  catch (error) { current.process().kill(); throw error; }
+}
 async function launch() {
   electronApp = await _electron.launch({ executablePath, cwd: temp, env: { ...process.env, PATH: path.join(process.env.SystemRoot || 'C:\\Windows', 'System32'), NODE_PATH: '', NODE_OPTIONS: '', GARAGEFLOWS_DATA_DIR: profile }, timeout: 60000 });
+  electronApp.on('console', message => {
+    const text = message.text();
+    if (text.startsWith('GF_SMOKE_STEP:')) {
+      report.lastRuntimeStep = text.slice('GF_SMOKE_STEP:'.length);
+      console.log(`::notice title=Installed runtime::BEGIN ${report.lastRuntimeStep}`);
+    }
+  });
   await expect.poll(() => electronApp.windows().filter(p => p.url().startsWith('http://127.0.0.1:')).length, { timeout: 60000 }).toBe(1);
   const page = electronApp.windows().find(p => p.url().startsWith('http://127.0.0.1:'));
   await expect(page.locator('.app-shell')).toBeVisible();
@@ -54,18 +77,22 @@ try {
   await page.screenshot({ path: 'test-results/windows-installed.png', fullPage: true });
   assert.equal(await page.evaluate(() => window.garageflows?.isElectron), true, 'Installed sandboxed preload bridge missing');
   stage('installed Electron window, renderer, sandboxed preload and official logo');
-  report.runtime = await electronApp.evaluate(async ({ app }) => {
+  report.runtime = await deadline(electronApp.evaluate(async ({ app }) => {
     const require = process.mainModule.require('node:module').createRequire(`${app.getAppPath()}/package.json`);
     const path = require('node:path');
     const fs = require('node:fs');
+    console.log('GF_SMOKE_STEP:load native canvas binding and DLLs');
     const { createCanvas } = require('canvas');
+    console.log('GF_SMOKE_STEP:draw and encode native canvas');
     const canvas = createCanvas(1200, 200);
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = 'white'; ctx.fillRect(0, 0, 1200, 200);
     ctx.fillStyle = 'black'; ctx.font = '65px Arial'; ctx.fillText('GARAGEFLOWS CLIENT MARTIN', 40, 125);
     const { runLocalOcrOnBuffer } = require(path.join(app.getAppPath(), 'dist-electron/core/ocr/ocr-engine.js'));
+    console.log('GF_SMOKE_STEP:offline OCR worker');
     const ocr = await runLocalOcrOnBuffer(canvas.toBuffer('image/png'), 'native-runtime.png');
     if (!/MARTIN/i.test(ocr.text)) throw new Error(`Offline OCR failed: ${JSON.stringify(ocr)}`);
+    console.log('GF_SMOKE_STEP:positioned PDF.js extraction');
     const { PDFDocument, StandardFonts } = require('pdf-lib');
     const pdf = await PDFDocument.create();
     const font = await pdf.embedFont(StandardFonts.Helvetica);
@@ -73,11 +100,13 @@ try {
     const { parsePdfBuffer } = require(path.join(app.getAppPath(), 'dist-electron/core/document-parser/pdf-parser.js'));
     const parsed = await parsePdfBuffer(Buffer.from(await pdf.save()), 'native-runtime.pdf');
     if (!parsed.pdfItems.length || !/Martin/.test(parsed.fullText) || parsed.isScanned) throw new Error(`Packaged PDF.js failed: ${JSON.stringify(parsed.warnings)}`);
+    console.log('GF_SMOKE_STEP:SQLite and profile persistence');
     const repo = require(path.join(app.getAppPath(), 'dist-electron/storage/repositories/client-repo.js'));
     await repo.createClient({ nom: 'TEST_INSTALLATION_ISOLE', prenom: 'Martin' });
     const profileRepo = require(path.join(app.getAppPath(), 'dist-electron/storage/repositories/profile-repo.js'));
     await profileRepo.saveProfessionalProfile({ entrepriseNom: 'TEST INSTALLATION', siret: '12345678901234', iban: 'FR1420041010050500013M02606' });
     await profileRepo.saveSubscriptionConfig({ prixTTC: '99,99', tvaTaux: '20' });
+    console.log('GF_SMOKE_STEP:import and generate DOCX');
     const originalPath = path.join(process.resourcesPath, 'examples/contrat-abonnement-garageflows.docx');
     const original = fs.readFileSync(originalPath);
     const templates = require(path.join(app.getAppPath(), 'dist-electron/storage/repositories/template-repo.js'));
@@ -88,6 +117,7 @@ try {
     const dirs = require(path.join(app.getAppPath(), 'dist-electron/storage/storage-paths.js')).ensureStorageDirectories();
     fs.writeFileSync(path.join(dirs.generated, 'contrat-test.docx'), generated.buffer);
     fs.writeFileSync(path.join(dirs.signatures, 'signature-test.png'), canvas.toBuffer('image/png'));
+    console.log('GF_SMOKE_STEP:runtime security preferences');
     const windows = require('electron').BrowserWindow.getAllWindows();
     const main = windows.find(w => w.webContents.getURL().startsWith('http://127.0.0.1:'));
     const preferences = main.webContents.getLastWebPreferences();
@@ -95,7 +125,7 @@ try {
     const branding = path.join(process.resourcesPath, 'branding/icon.ico');
     if (!fs.existsSync(branding)) throw new Error('Missing installed ICO');
     return { electron: process.versions.electron, node: process.versions.node, arch: process.arch, appVersion: app.getVersion(), security: { contextIsolation: preferences.contextIsolation, nodeIntegration: preferences.nodeIntegration, sandbox: preferences.sandbox }, canvasPngBytes: canvas.toBuffer('image/png').length, ocrText: ocr.text, positionedPdfItems: parsed.pdfItems.length, appPath: app.getAppPath() };
-  });
+  }), 'installed business runtime');
   assert.equal(report.runtime.arch, 'x64');
   assert.equal(report.runtime.appVersion, policy.appVersion);
   assert.equal(report.runtime.electron, policy.config.electronVersion);
@@ -104,7 +134,7 @@ try {
   const shortcuts = powershell(`$shell=New-Object -ComObject WScript.Shell; @(Get-ChildItem ([Environment]::GetFolderPath('Desktop')),([Environment]::GetFolderPath('Programs')) -Filter '*GarageFlows*.lnk' -Recurse | Where-Object { $shell.CreateShortcut($_.FullName).TargetPath -eq '${escapedExe}' }).Count`);
   assert.ok(Number(shortcuts) >= 2, `Desktop/Start Menu shortcuts missing: ${shortcuts}`);
   stage('installed desktop and Start Menu shortcut targets');
-  await electronApp.close(); electronApp = null;
+  await closeInstalledApp();
   const before = snapshot();
   const uninstaller = path.join(destination, fs.readdirSync(destination).find(name => /^Uninstall .*\.exe$/.test(name)));
   const uninstallInfo = verifyPeMetadata(fs.readFileSync(uninstaller), policy, 'installer', 'installed uninstaller');
@@ -123,27 +153,27 @@ try {
   stage('real uninstall preserves all isolated business files byte for byte');
   run(installer, ['/S', `/D=${destination}`]);
   await launch();
-  const retained = await electronApp.evaluate(async ({ app }) => {
+  const retained = await deadline(electronApp.evaluate(async ({ app }) => {
     const require = process.mainModule.require('node:module').createRequire(`${app.getAppPath()}/package.json`);
     const clients = await require(`${app.getAppPath()}/dist-electron/storage/repositories/client-repo.js`).listClients();
     const templates = await require(`${app.getAppPath()}/dist-electron/storage/repositories/template-repo.js`).listTemplates();
     const profile = await require(`${app.getAppPath()}/dist-electron/storage/repositories/profile-repo.js`).getProfessionalProfile();
     const subscription = await require(`${app.getAppPath()}/dist-electron/storage/repositories/profile-repo.js`).getSubscriptionConfig();
     return { clients: clients.map(c => c.nom), templates: templates.map(t => t.name), company: profile.entrepriseNom, price: subscription.prixTTC };
-  });
+  }), 'reinstalled business persistence');
   assert.ok(retained.clients.includes('TEST_INSTALLATION_ISOLE'));
   assert.ok(retained.templates.includes('TEST_MODELE_ISOLE'));
   assert.equal(retained.company, 'TEST INSTALLATION');
   assert.equal(retained.price, '99,99');
   stage('real reinstall/relaunch retains clients, imported template, company and subscription');
-  await electronApp.close(); electronApp = null;
+  await closeInstalledApp();
   run(uninstaller, ['/S', `_?=${destination}`]);
   stage('final isolated uninstall');
 } catch (error) {
   console.error(`::error title=Installed test::${String(error.stack || error).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A')}`);
   throw error;
 } finally {
-  if (electronApp) await electronApp.close();
-  fs.writeFileSync('test-results/windows-installed.json', JSON.stringify(report, null, 2));
+  try { await closeInstalledApp(); }
+  finally { fs.writeFileSync('test-results/windows-installed.json', JSON.stringify(report, null, 2)); }
   // Do not remove temp on failure: retain proof/data. Never delete AppData or any existing install.
 }

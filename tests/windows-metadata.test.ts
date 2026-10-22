@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { NtExecutable, NtExecutableResource, Resource } from 'resedit';
-import { readBuildPolicy, versionPolicy, verifyPeMetadata } from '../scripts/windows-metadata.mjs';
+import { readBuildPolicy, versionPolicy, verifyPeMetadata, releaseBuildEnvironment } from '../scripts/windows-metadata.mjs';
 
 const policy = { ...versionPolicy('1.0.1'), productName: 'GarageFlows Contract Generator' };
 function fixture(options: { codepage?: number; lang?: number; product?: string; file?: string; fixed?: string; name?: string; staleTable?: boolean; noVersion?: boolean; x86?: boolean; missingTranslation?: boolean; missingProduct?: boolean } = {}) {
@@ -27,6 +27,11 @@ function fixture(options: { codepage?: number; lang?: number; product?: string; 
 }
 
 describe('Windows release metadata — real PE resources, not mocks', () => {
+  it('isolates release versions from inherited CI counters without changing user paths/data', () => {
+    const original = { BUILD_NUMBER: '77', TRAVIS_BUILD_NUMBER: '78', APPVEYOR_BUILD_NUMBER: '79', CIRCLE_BUILD_NUM: '80', BUILD_BUILDNUMBER: '81', CI_PIPELINE_IID: '82', PATH: 'unchanged', APPDATA: 'unchanged', GARAGEFLOWS_DATA_DIR: 'unchanged' };
+    expect(releaseBuildEnvironment(original)).toEqual({ PATH: 'unchanged', APPDATA: 'unchanged', GARAGEFLOWS_DATA_DIR: 'unchanged' });
+    expect(original.BUILD_NUMBER).toBe('77');
+  });
   it('uses package.json as the single source', () => {
     const current = readBuildPolicy();
     expect(current.pkg.version).toBe(current.appVersion);

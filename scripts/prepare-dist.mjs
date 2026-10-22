@@ -16,7 +16,7 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { readBuildPolicy } from './windows-metadata.mjs';
+import { readBuildPolicy, releaseBuildEnvironment } from './windows-metadata.mjs';
 const policy = readBuildPolicy();
 
 const root = process.cwd();
@@ -86,7 +86,7 @@ if (isWindows) {
 // Une variable ELECTRON_BUILDER_7ZIP_PATH persistante pointant vers un binaire
 // d'une autre plateforme (cause historique de l'erreur ENOENT sous Windows)
 // est détectée et neutralisée au lieu de faire échouer electron-builder.
-const env = { ...process.env };
+const env = releaseBuildEnvironment(process.env);
 function sanitizeSevenZipEnv() {
   const inherited = env.ELECTRON_BUILDER_7ZIP_PATH;
   if (inherited) {

@@ -36,6 +36,13 @@ export function readBuildPolicy(root = projectRoot) {
   return { ...policy, productName: config.productName, appId: config.appId, config, pkg };
 }
 
+/** Release revisions come from package.json, never an unrelated CI run counter. */
+export function releaseBuildEnvironment(inherited) {
+  const env = { ...inherited };
+  for (const key of ['BUILD_NUMBER', 'TRAVIS_BUILD_NUMBER', 'APPVEYOR_BUILD_NUMBER', 'CIRCLE_BUILD_NUM', 'BUILD_BUILDNUMBER', 'CI_PIPELINE_IID']) delete env[key];
+  return env;
+}
+
 function quad(value, label) {
   assert.match(value || '', /^\d+\.\d+\.\d+(?:\.\d+)?$/, `${label}: invalid Windows version ${JSON.stringify(value)}`);
   const parts = value.split('.').map(Number);

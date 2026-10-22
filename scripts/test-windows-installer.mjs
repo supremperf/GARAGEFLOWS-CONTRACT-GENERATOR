@@ -50,6 +50,8 @@ let applicationPid;
 async function closeInstalledApp() {
   if (!electronApp) return;
   const current = electronApp;
+  // Playwright disposes its channel on close: retain the child handle while it exists.
+  const launcher = current.process();
   const pid = applicationPid;
   electronApp = null;
   let observer;
@@ -80,14 +82,15 @@ async function closeInstalledApp() {
     await request;
     assert.equal(code, 0, `Installed application did not exit normally: ${errors}`);
     (report.nativeExitCodes ||= []).push(code);
+    stage('normal native Electron exit (code 0)');
   } catch (error) {
     // Only the launcher/tree created by this test; never kill by executable name.
-    spawnSync('taskkill.exe', ['/PID', String(current.process().pid), '/T', '/F'], { timeout: 10000, encoding: 'utf8' });
+    spawnSync('taskkill.exe', ['/PID', String(launcher.pid), '/T', '/F'], { timeout: 10000, encoding: 'utf8' });
     throw error;
   } finally {
     if (observer && observer.exitCode === null) observer.kill();
     // After verified native exit this is harness cleanup, not forced product shutdown.
-    if (current.process().exitCode === null && current.process().pid !== pid) current.process().kill();
+    if (launcher.exitCode === null && launcher.pid !== pid) launcher.kill();
   }
 }
 async function launch() {
@@ -99,7 +102,7 @@ async function launch() {
     if (text.startsWith('GF_SMOKE_ERROR:')) report.lastNativeError = text.slice('GF_SMOKE_ERROR:'.length);
     if (text.startsWith('GF_SMOKE_STEP:')) {
       report.lastRuntimeStep = text.slice('GF_SMOKE_STEP:'.length);
-      console.log(`::notice title=Installed runtime::BEGIN ${report.lastRuntimeStep}`);
+      console.log(`[Installed runtime] BEGIN ${report.lastRuntimeStep}`);
     }
   });
   await expect.poll(() => electronApp.windows().filter(p => p.url().startsWith('http://127.0.0.1:')).length, { timeout: 60000 }).toBe(1);

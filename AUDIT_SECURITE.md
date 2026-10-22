@@ -108,3 +108,28 @@ Tous les contrôles exécutables dans cet environnement passent (types, lint 0 e
 **Revalidé après correction** : `npm ci` + `npm install` (npm système, sans flag), `npm ls vite rollup`, imports Rollup/Vite, typecheck, ESLint 0 erreur, tests 28/28, `npm run build` ×3, `npm run dist` → `GarageFlows-Contract-Generator-Setup.exe` (106,7 Mo), exports PDF/DOCX réels re-testés via l'API.
 
 **Vulnérabilités restantes** : voir l'audit relancé après correction (récapitulatif dans le rapport de mission) — les chaînes builder (dev uniquement) et les réserves déjà documentées (xlsx, pdfjs ≤ 4.1.392 neutralisé par configuration, sprintf-js sans correctif) subsistent sans changement de statut.
+
+---
+
+# Addendum (3) — 2026-10-22 — Erreur ENOENT 7-Zip sous Windows : cause racine et correction
+
+## Cause racine (prouvée)
+L'erreur `ENOENT ... node_modules\7zip-bin\linux\x64\7za` ne venait **ni** d'une variable d'environnement persistante, **ni** d'electron-builder, **ni** d'une corruption de `node_modules` : elle venait du script du projet `scripts/prepare-dist.mjs`, écrit pour la compilation croisée depuis Linux, qui **imposait inconditionnellement** à electron-builder le binaire Linux (`ELECTRON_BUILDER_7ZIP_PATH=<racine>/node_modules/7zip-bin/linux/x64/7za`) ainsi que le bundle NSIS Linux (`ELECTRON_BUILDER_NSIS_DIR/_RESOURCES_DIR`), quelle que soit la plateforme d'exécution. Sous Windows, electron-builder tentait donc d'exécuter le binaire ELF Linux → `ENOENT`. Le package `7zip-bin` contenait déjà le binaire Windows correct (`win/x64/7za.exe`, PE « MZ », 1 231 360 octets, vérifié) ; le binaire Linux est un ELF (vérifié par octets magiques).
+
+## Corrections
+- `scripts/prepare-dist.mjs` réécrit **multi-plateforme, fail-fast, messages explicites en français** :
+  - détection plateforme/architecture ; contrôles préalables (version Node ≥ 18, présence d'electron-builder, artefacts de build, icône) avec arrêt immédiat (code 1) en cas d'échec ;
+  - **sous Windows** : aucun chemin Linux n'est injecté ; NSIS et 7zip-bin sont résolus nativement ; existence de `7za.exe` (win/x64) vérifiée avant build ; `patch-builder.cjs` (adaptation « sans Wine ») non appliqué ; toute variable héritée `ELECTRON_BUILDER_7ZIP_PATH` incompatible (plateforme différente ou chemin inexistant) est détectée et ignorée avec message ;
+  - **sous Linux (compilation croisée)** : comportement historique conservé (bundle NSIS de `tools/`, `7za` Linux, patch no-Wine, override `-c.win.signAndEditExecutable=false`) ;
+  - vérifications post-build conservées/renforcées (installateur présent, taille > 20 Mo, exécutable win-unpacked présent).
+- Icône réelle créée : `build/icon.ico` multi-résolutions (16→256 px, PNG, 32 bpp ; générateur déterministe `scripts/generate-icon.mjs`, monogramme « GF ») + `build/icon.png` ; configurée dans `electron-builder.yml` (`win.icon`, `nsis.installerIcon/uninstallerIcon`) et utilisée comme icône de fenêtre/barre des tâches dans `electron/main.ts`.
+- Avertissement `signAndEditExecutable` traité proprement : `win.signExecutable: false` (aucune signature, aucun certificat) tout en gardant l'édition des ressources active sous Windows natif ; pas de signature payante simulée.
+- Git : la branche `arena/bffcc8b2-garageflows-contract-generator` n'avait aucun upstream configuré (cause directe du `git pull` « no tracking information ») : `git branch --set-upstream-to=origin/arena/bffcc8b2-garageflows-contract-generator` appliqué et vérifié (`git branch -vv`). Dépôt distant inchangé : `github.com/supremperf/GARAGEFLOWS-CONTRACT-GENERATOR`.
+
+## Vérifications exécutées
+- `npm run build` (exemples + renderer + Electron/TypeScript) : exit 0. `npm test` : 28/28.
+- `npm run dist` : exit 0 → `dist/GarageFlows-Contract-Generator-Setup.exe` = **111 849 032 octets (106,7 Mo)** ; `dist/win-unpacked/GarageFlows Contract Generator.exe` présent, **PE x64 (0x8664)** vérifié ; stub NSIS de l'installateur en PE x86 (0x14c, comportement standard NSIS, compatible Windows 64 bits) ; asar contient `build/icon.png`, main, preload, renderer, exemples.
+- `npm audit` (ré-exécuté) : **12 vulnérabilités (0 critique, 2 high, 10 moderate)** — identique à l'analyse précédente ; aucune correction aveugle `--force` appliquée.
+- **Non testé** : exécution/installation réelle sous Windows 10 et lancement de `7za.exe` natif (bac Linux sans Wine) ; sous Windows, le nouveau script ne force plus aucun chemin et valide le binaire PE avant build — le test final reste `npm run dist` sur la machine Windows.
+
+Statut de l'addendum : **VALIDÉ AVEC RÉSERVES** (vérification fonctionnelle native Windows non exécutable depuis ce bac).

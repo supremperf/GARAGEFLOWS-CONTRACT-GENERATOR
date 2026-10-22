@@ -10,6 +10,7 @@ files:
   - dist-electron/**/*
   - dist-renderer/**/*
   - examples/**/*
+  - build/icon.png
   - README_MODELES_CONTRATS.md
   - package.json
 extraResources:
@@ -24,8 +25,16 @@ win:
     - target: nsis
       arch:
         - x64
-  signAndEditExecutable: false
+  # Icône d'application multi-résolutions (scripts/generate-icon.mjs).
+  icon: build/icon.ico
+  # signExecutable false : aucune signature de code (pas de certificat requis),
+  # mais l'édition des ressources (icône + métadonnées de l'exécutable) reste
+  # active sous Windows natif. Sous Linux (compilation croisée), prepare-dist.mjs
+  # ajoute -c.win.signAndEditExecutable=false car rcedit exige Wine.
+  signExecutable: false
 nsis:
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true

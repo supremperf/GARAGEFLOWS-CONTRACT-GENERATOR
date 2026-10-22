@@ -12,6 +12,10 @@ function createWindow(port: number) {
     minWidth: 1100,
     minHeight: 720,
     title: 'GarageFlows Contract Generator',
+    // Icône fenêtre/barre des tâches (le binaire conserve l'icône ressource
+    // Electron car signAndEditExecutable est désactivé pour un build hors-ligne
+    // sans certificat ; l'icône de l'installateur NSIS est build/icon.ico).
+    icon: path.join(__dirname, '..', '..', 'build', 'icon.png'),
     backgroundColor: '#070b14',
     autoHideMenuBar: true,
     webPreferences: {

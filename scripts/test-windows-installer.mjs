@@ -21,7 +21,7 @@ assert.equal(installed, '0', 'Refusing to touch an existing GarageFlows installa
 const businessRoot = path.join(process.env.APPDATA, 'GarageFlowsContractGenerator');
 assert.ok(!fs.existsSync(businessRoot), 'Refusing to touch an existing business data directory');
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'gf-installed-'));
-const destination = path.join(temp, 'Application');
+const destination = path.join(temp, 'Application GarageFlows');
 const profile = path.join(temp, 'IsolatedData');
 const executablePath = path.join(destination, `${policy.productName}.exe`);
 const installer = path.join(projectRoot, 'dist/GarageFlows-Contract-Generator-Setup.exe');
@@ -37,7 +37,7 @@ function snapshot() {
 }
 let electronApp;
 async function launch() {
-  electronApp = await _electron.launch({ executablePath, env: { ...process.env, GARAGEFLOWS_DATA_DIR: profile }, timeout: 60000 });
+  electronApp = await _electron.launch({ executablePath, cwd: temp, env: { ...process.env, PATH: path.join(process.env.SystemRoot || 'C:\\Windows', 'System32'), NODE_PATH: '', NODE_OPTIONS: '', GARAGEFLOWS_DATA_DIR: profile }, timeout: 60000 });
   await expect.poll(() => electronApp.windows().filter(p => p.url().startsWith('http://127.0.0.1:')).length, { timeout: 60000 }).toBe(1);
   const page = electronApp.windows().find(p => p.url().startsWith('http://127.0.0.1:'));
   await expect(page.locator('.app-shell')).toBeVisible();
@@ -73,6 +73,19 @@ try {
     if (!parsed.pdfItems.length || !/Martin/.test(parsed.fullText) || parsed.isScanned) throw new Error(`Packaged PDF.js failed: ${JSON.stringify(parsed.warnings)}`);
     const repo = require(path.join(app.getAppPath(), 'dist-electron/storage/repositories/client-repo.js'));
     await repo.createClient({ nom: 'TEST_INSTALLATION_ISOLE', prenom: 'Martin' });
+    const profileRepo = require(path.join(app.getAppPath(), 'dist-electron/storage/repositories/profile-repo.js'));
+    await profileRepo.saveProfessionalProfile({ entrepriseNom: 'TEST INSTALLATION', siret: '12345678901234', iban: 'FR1420041010050500013M02606' });
+    await profileRepo.saveSubscriptionConfig({ prixTTC: '99,99', tvaTaux: '20' });
+    const originalPath = path.join(process.resourcesPath, 'examples/contrat-abonnement-garageflows.docx');
+    const original = fs.readFileSync(originalPath);
+    const templates = require(path.join(app.getAppPath(), 'dist-electron/storage/repositories/template-repo.js'));
+    const template = await templates.importTemplate({ fileName: 'smoke.docx', name: 'TEST_MODELE_ISOLE', buffer: original });
+    const { generateContractDocument } = require(path.join(app.getAppPath(), 'dist-electron/core/replacement-engine/index.js'));
+    const values = { ENTREPRISE_SIRET: '12345678901234', CLIENT_EMAIL: 'test@example.test', ENTREPRISE_IBAN: 'FR1420041010050500013M02606', ABONNEMENT_PRIX_TTC: '99,99', ABONNEMENT_PRIX_MONTANT: '99,99', ABONNEMENT_PRIX_HT: '83,33', ABONNEMENT_TVA: '20' };
+    const generated = await generateContractDocument({ templateId: template.id, templateName: template.name, originalBuffer: original, originalFilePath: originalPath, originalFileName: 'smoke.docx', variables: template.variables, valuesByVariableId: Object.fromEntries(template.variables.map(v => [v.id, values[v.canonicalField] || 'TEST INSTALLATION'])), targetFormat: 'docx' });
+    const dirs = require(path.join(app.getAppPath(), 'dist-electron/storage/storage-paths.js')).ensureStorageDirectories();
+    fs.writeFileSync(path.join(dirs.generated, 'contrat-test.docx'), generated.buffer);
+    fs.writeFileSync(path.join(dirs.signatures, 'signature-test.png'), canvas.toBuffer('image/png'));
     const branding = path.join(process.resourcesPath, 'branding/icon.ico');
     if (!fs.existsSync(branding)) throw new Error('Missing installed ICO');
     return { electron: process.versions.electron, node: process.versions.node, arch: process.arch, appVersion: app.getVersion(), canvasPngBytes: canvas.toBuffer('image/png').length, ocrText: ocr.text, positionedPdfItems: parsed.pdfItems.length, appPath: app.getAppPath() };
@@ -80,7 +93,7 @@ try {
   assert.equal(report.runtime.arch, 'x64');
   assert.equal(report.runtime.appVersion, policy.appVersion);
   assert.equal(report.runtime.electron, policy.config.electronVersion);
-  stage('packaged x64 canvas native binding/DLL, real offline OCR, ESM PDF.js and SQLite/WASM');
+  stage('packaged x64 canvas native binding/DLL, real offline OCR, ESM PDF.js, SQLite/WASM, imported DOCX and generated contract without Node/npm on PATH');
   const escapedExe = executablePath.replaceAll("'", "''");
   const shortcuts = powershell(`$shell=New-Object -ComObject WScript.Shell; @(Get-ChildItem ([Environment]::GetFolderPath('Desktop')),([Environment]::GetFolderPath('Programs')) -Filter '*GarageFlows*.lnk' -Recurse | Where-Object { $shell.CreateShortcut($_.FullName).TargetPath -eq '${escapedExe}' }).Count`);
   assert.ok(Number(shortcuts) >= 2, `Desktop/Start Menu shortcuts missing: ${shortcuts}`);
@@ -94,12 +107,19 @@ try {
   stage('real uninstall preserves all isolated business files byte for byte');
   run(installer, ['/S', `/D=${destination}`]);
   await launch();
-  const names = await electronApp.evaluate(async ({ app }) => {
+  const retained = await electronApp.evaluate(async ({ app }) => {
     const require = (await import('node:module')).createRequire(`${app.getAppPath()}/package.json`);
-    return (await require(`${app.getAppPath()}/dist-electron/storage/repositories/client-repo.js`).listClients()).map(c => c.nom);
+    const clients = await require(`${app.getAppPath()}/dist-electron/storage/repositories/client-repo.js`).listClients();
+    const templates = await require(`${app.getAppPath()}/dist-electron/storage/repositories/template-repo.js`).listTemplates();
+    const profile = await require(`${app.getAppPath()}/dist-electron/storage/repositories/profile-repo.js`).getProfessionalProfile();
+    const subscription = await require(`${app.getAppPath()}/dist-electron/storage/repositories/profile-repo.js`).getSubscriptionConfig();
+    return { clients: clients.map(c => c.nom), templates: templates.map(t => t.name), company: profile.entrepriseNom, price: subscription.prixTTC };
   });
-  assert.ok(names.includes('TEST_INSTALLATION_ISOLE'));
-  stage('real reinstall/relaunch retains SQLite client');
+  assert.ok(retained.clients.includes('TEST_INSTALLATION_ISOLE'));
+  assert.ok(retained.templates.includes('TEST_MODELE_ISOLE'));
+  assert.equal(retained.company, 'TEST INSTALLATION');
+  assert.equal(retained.price, '99,99');
+  stage('real reinstall/relaunch retains clients, imported template, company and subscription');
   await electronApp.close(); electronApp = null;
   run(uninstaller, ['/S', `_?=${destination}`]);
   stage('final isolated uninstall');

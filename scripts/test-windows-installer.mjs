@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { _electron, expect } from '@playwright/test';
 import { Data, Resource } from 'resedit';
@@ -46,15 +46,53 @@ async function deadline(promise, operation, milliseconds = 120000) {
   } finally { clearTimeout(timer); }
 }
 let electronApp;
+let applicationPid;
 async function closeInstalledApp() {
   if (!electronApp) return;
   const current = electronApp;
+  const pid = applicationPid;
   electronApp = null;
-  try { await deadline(current.close(), 'close installed Electron', 30000); }
-  catch (error) { current.process().kill(); throw error; }
+  let observer;
+  try {
+    assert.ok(Number.isInteger(pid) && pid > 0, 'Missing installed Electron main PID');
+    // On Windows Playwright launches cmd.exe. Its close event is not the app's exit status.
+    // Open the actual process handle BEFORE requesting a normal user-window close.
+    observer = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', `$p=Get-Process -Id ${pid} -ErrorAction Stop; [void]$p.Handle; [Console]::Out.WriteLine('GF_PROCESS_READY'); $p.WaitForExit(); $code=$p.ExitCode; if ($null -eq $code) { throw 'Missing native process exit code' }; exit $code`], { windowsHide: true });
+    let output = '';
+    let errors = '';
+    const ready = new Promise((resolve, reject) => {
+      observer.stdout.on('data', chunk => { output += chunk; if (output.includes('GF_PROCESS_READY')) resolve(); });
+      observer.once('error', reject);
+      observer.once('exit', () => { if (!output.includes('GF_PROCESS_READY')) reject(new Error(`Native exit observer failed: ${errors}`)); });
+    });
+    observer.stderr.on('data', chunk => { errors += chunk; });
+    const exited = new Promise((resolve, reject) => { observer.once('exit', resolve); observer.once('error', reject); });
+    exited.catch(() => {}); // ready can reject first; retain the original failure for the awaited exit below.
+    await deadline(ready, 'open native Electron process handle', 15000);
+    const request = current.evaluate(({ BrowserWindow }) => {
+      // Let the inspector evaluation return before app.quit runs via window-all-closed.
+      globalThis.setImmediate(() => { for (const window of BrowserWindow.getAllWindows()) window.close(); });
+    }).catch(error => {
+      if (!/closed|destroyed|disconnected/i.test(String(error))) throw error;
+    });
+    request.catch(() => {});
+    const code = await deadline(exited, 'normal installed Electron process exit', 30000);
+    await request;
+    assert.equal(code, 0, `Installed application did not exit normally: ${errors}`);
+    (report.nativeExitCodes ||= []).push(code);
+  } catch (error) {
+    // Only the launcher/tree created by this test; never kill by executable name.
+    spawnSync('taskkill.exe', ['/PID', String(current.process().pid), '/T', '/F'], { timeout: 10000, encoding: 'utf8' });
+    throw error;
+  } finally {
+    if (observer && observer.exitCode === null) observer.kill();
+    // After verified native exit this is harness cleanup, not forced product shutdown.
+    if (current.process().exitCode === null && current.process().pid !== pid) current.process().kill();
+  }
 }
 async function launch() {
   electronApp = await _electron.launch({ executablePath, cwd: temp, env: { ...process.env, PATH: path.join(process.env.SystemRoot || 'C:\\Windows', 'System32'), NODE_PATH: '', NODE_OPTIONS: '', GARAGEFLOWS_DATA_DIR: profile }, timeout: 60000 });
+  applicationPid = await electronApp.evaluate(() => process.pid);
   electronApp.process().stderr.on('data', chunk => { report.lastNativeStderr = `${report.lastNativeStderr || ''}${chunk}`.slice(-16000); });
   electronApp.on('console', message => {
     const text = message.text();

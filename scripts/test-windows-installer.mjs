@@ -107,7 +107,7 @@ try {
     const repo = require(path.join(app.getAppPath(), 'dist-electron/storage/repositories/client-repo.js'));
     await repo.createClient({ nom: 'TEST_INSTALLATION_ISOLE', prenom: 'Martin' });
     const profileRepo = require(path.join(app.getAppPath(), 'dist-electron/storage/repositories/profile-repo.js'));
-    await profileRepo.saveProfessionalProfile({ entrepriseNom: 'TEST INSTALLATION', siret: '12345678901234', iban: 'FR1420041010050500013M02606' });
+    await profileRepo.saveProfessionalProfile({ entrepriseNom: 'TEST INSTALLATION', siret: '12345678901234', iban: 'FR1420041010050500013M02606', bic: 'PSSTFRPPXXX' });
     await profileRepo.saveSubscriptionConfig({ prixTTC: '99,99', tvaTaux: '20' });
     console.log('GF_SMOKE_STEP:import and generate DOCX');
     const originalPath = path.join(process.resourcesPath, 'examples/contrat-abonnement-garageflows.docx');
@@ -115,7 +115,7 @@ try {
     const templates = require(path.join(app.getAppPath(), 'dist-electron/storage/repositories/template-repo.js'));
     const template = await templates.importTemplate({ fileName: 'smoke.docx', name: 'TEST_MODELE_ISOLE', buffer: original });
     const { generateContractDocument } = require(path.join(app.getAppPath(), 'dist-electron/core/replacement-engine/index.js'));
-    const values = { ENTREPRISE_SIRET: '12345678901234', CLIENT_EMAIL: 'test@example.test', ENTREPRISE_IBAN: 'FR1420041010050500013M02606', ABONNEMENT_PRIX_TTC: '99,99', ABONNEMENT_PRIX_MONTANT: '99,99', ABONNEMENT_PRIX_HT: '83,33', ABONNEMENT_TVA: '20' };
+    const values = { ENTREPRISE_SIRET: '12345678901234', CLIENT_EMAIL: 'test@example.test', ENTREPRISE_IBAN: 'FR1420041010050500013M02606', ENTREPRISE_BIC: 'PSSTFRPPXXX', ABONNEMENT_PRIX_TTC: '99,99', ABONNEMENT_PRIX_MONTANT: '99,99', ABONNEMENT_PRIX_HT: '83,33', ABONNEMENT_TVA: '20' };
     const generated = await generateContractDocument({ templateId: template.id, templateName: template.name, originalBuffer: original, originalFilePath: originalPath, originalFileName: 'smoke.docx', variables: template.variables, valuesByVariableId: Object.fromEntries(template.variables.map(v => [v.id, values[v.canonicalField] || 'TEST INSTALLATION'])), targetFormat: 'docx' });
     const dirs = require(path.join(app.getAppPath(), 'dist-electron/storage/storage-paths.js')).ensureStorageDirectories();
     fs.writeFileSync(path.join(dirs.generated, 'contrat-test.docx'), generated.buffer);

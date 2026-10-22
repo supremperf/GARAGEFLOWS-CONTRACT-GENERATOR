@@ -23,12 +23,12 @@ async function main() {
   await createClient({ nom: 'TEST_RUNTIME_ISOLE', prenom: 'Martin' });
   resetDatabaseConnection();
   assert.equal((await listClients())[0].nom, 'TEST_RUNTIME_ISOLE');
-  const { parseDocumentFile } = require('../dist-electron/core/document-parser');
+  const { importTemplate } = require('../dist-electron/storage/repositories/template-repo');
   const { generateContractDocument } = require('../dist-electron/core/replacement-engine');
   const sourcePath = path.join(root, 'examples/contrat-abonnement-garageflows.docx');
   const original = fs.readFileSync(sourcePath);
-  const template = await parseDocumentFile(sourcePath);
-  const generated = await generateContractDocument({ templateId: 'runtime-test', templateName: 'Runtime', originalBuffer: original, originalFilePath: sourcePath, originalFileName: path.basename(sourcePath), variables: template.detectedVariables, valuesByVariableId: Object.fromEntries(template.detectedVariables.map(v => [v.id, ({ ENTREPRISE_SIRET: '12345678901234', CLIENT_EMAIL: 'test@example.test', ENTREPRISE_IBAN: 'FR1420041010050500013M02606', ABONNEMENT_PRIX_TTC: '99,99', ABONNEMENT_PRIX_MONTANT: '99,99', ABONNEMENT_PRIX_HT: '83,33', ABONNEMENT_TVA: '20' })[v.canonicalField] || 'TEST RUNTIME'])), targetFormat: 'docx' });
+  const template = await importTemplate({ fileName: path.basename(sourcePath), name: 'RUNTIME_MODEL', buffer: original });
+  const generated = await generateContractDocument({ templateId: 'runtime-test', templateName: 'Runtime', originalBuffer: original, originalFilePath: sourcePath, originalFileName: path.basename(sourcePath), variables: template.variables, valuesByVariableId: Object.fromEntries(template.variables.map(v => [v.id, ({ ENTREPRISE_SIRET: '12345678901234', CLIENT_EMAIL: 'test@example.test', ENTREPRISE_IBAN: 'FR1420041010050500013M02606', ENTREPRISE_BIC: 'PSSTFRPPXXX', ABONNEMENT_PRIX_TTC: '99,99', ABONNEMENT_PRIX_MONTANT: '99,99', ABONNEMENT_PRIX_HT: '83,33', ABONNEMENT_TVA: '20' })[v.canonicalField] || 'TEST RUNTIME'])), targetFormat: 'docx' });
   assert.ok(generated.buffer.length > 100);
   assert.ok(original.equals(fs.readFileSync(sourcePath)), 'Original template modified');
   const { runLocalOcrOnBuffer } = require('../dist-electron/core/ocr/ocr-engine');

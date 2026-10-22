@@ -41,7 +41,7 @@ async function deadline(promise, operation, milliseconds = 120000) {
   let timer;
   try {
     return await Promise.race([promise, new Promise((_, reject) => {
-      timer = setTimeout(() => reject(new Error(`${operation} timed out; last runtime step: ${report.lastRuntimeStep || 'none'}`)), milliseconds);
+      timer = setTimeout(() => reject(new Error(`${operation} timed out; last runtime step: ${report.lastRuntimeStep || 'none'}; uncaught: ${report.lastNativeError || 'none'}; stderr: ${report.lastNativeStderr || 'none'}`)), milliseconds);
     })]);
   } finally { clearTimeout(timer); }
 }
@@ -55,8 +55,10 @@ async function closeInstalledApp() {
 }
 async function launch() {
   electronApp = await _electron.launch({ executablePath, cwd: temp, env: { ...process.env, PATH: path.join(process.env.SystemRoot || 'C:\\Windows', 'System32'), NODE_PATH: '', NODE_OPTIONS: '', GARAGEFLOWS_DATA_DIR: profile }, timeout: 60000 });
+  electronApp.process().stderr.on('data', chunk => { report.lastNativeStderr = `${report.lastNativeStderr || ''}${chunk}`.slice(-16000); });
   electronApp.on('console', message => {
     const text = message.text();
+    if (text.startsWith('GF_SMOKE_ERROR:')) report.lastNativeError = text.slice('GF_SMOKE_ERROR:'.length);
     if (text.startsWith('GF_SMOKE_STEP:')) {
       report.lastRuntimeStep = text.slice('GF_SMOKE_STEP:'.length);
       console.log(`::notice title=Installed runtime::BEGIN ${report.lastRuntimeStep}`);
@@ -79,6 +81,7 @@ try {
   stage('installed Electron window, renderer, sandboxed preload and official logo');
   report.runtime = await deadline(electronApp.evaluate(async ({ app }) => {
     const require = process.mainModule.require('node:module').createRequire(`${app.getAppPath()}/package.json`);
+    process.once('uncaughtExceptionMonitor', error => console.log(`GF_SMOKE_ERROR:${error.stack || error}`));
     const path = require('node:path');
     const fs = require('node:fs');
     console.log('GF_SMOKE_STEP:load native canvas binding and DLLs');
@@ -89,7 +92,7 @@ try {
     ctx.fillStyle = 'white'; ctx.fillRect(0, 0, 1200, 200);
     ctx.fillStyle = 'black'; ctx.font = '65px Arial'; ctx.fillText('GARAGEFLOWS CLIENT MARTIN', 40, 125);
     const { runLocalOcrOnBuffer } = require(path.join(app.getAppPath(), 'dist-electron/core/ocr/ocr-engine.js'));
-    console.log('GF_SMOKE_STEP:offline OCR worker');
+    console.log(`GF_SMOKE_STEP:offline OCR worker at ${require(path.join(app.getAppPath(), 'dist-electron/core/ocr/ocr-engine.js')).resolveOcrWorkerPath()}`);
     const ocr = await runLocalOcrOnBuffer(canvas.toBuffer('image/png'), 'native-runtime.png');
     if (!/MARTIN/i.test(ocr.text)) throw new Error(`Offline OCR failed: ${JSON.stringify(ocr)}`);
     console.log('GF_SMOKE_STEP:positioned PDF.js extraction');

@@ -77,3 +77,15 @@ typecheck OK · lint 0 erreur / 115 avertissements · tests 28/28 · build compl
 ## K. Statut final : **VALIDÉ AVEC RÉSERVES**
 
 Tous les contrôles exécutables dans cet environnement passent (types, lint 0 erreur, 28/28 tests, build, sondes runtime) et les vulnérabilités critiques sont éliminées (3 → 0 ; total 21 → 11, production 5). Subsistent uniquement les 5 réserves formelles du §E, toutes atténuées par des mesures vérifiées, dont la résolution complète exige des mises à jour majeures externes (Electron ≥ 39, pdfjs ≥ 4.2.67, SheetJS ≥ 0.20.3) planifiées ci-dessus.
+
+---
+
+## Addendum — 22 octobre 2026 : correction du conflit ERESOLVE ESLint
+
+**Erreur reproduite** : `npm install` → `ERESOLVE could not resolve @eslint/js@10.0.1 / Found: eslint@9.39.5 / peerOptional eslint@"^10.0.0" from @eslint/js@10.0.1`.
+
+**Cause racine** : `@eslint/js@^10.0.1` avait été installé comme dépendance directe (dernière version majeure) aux côtés de `eslint@^9.39.5`, alors que `@eslint/js` 10 exige ESLint 10. La configuration (`eslint.config.mjs`, typescript-eslint 8.72.0 dont les peers acceptent ESLint `^8.57 || ^9 || ^10`) n'était pas en cause.
+
+**Correction (sans `--force` ni `--legacy-peer-deps`)** : alignement sur la ligne maintenue cohérente — `eslint@^9.39.5` + `@eslint/js@^9.39.5` + `typescript-eslint@^8.72.0` — et régénération incrémentale du `package-lock.json` par `npm install` standard. La montée vers ESLint 10 a été écartée à ce stade : elle imposerait de revalider l'ensemble de la chaîne flat config sans bénéfice fonctionnel, la ligne 9.39 étant la version maintenue de sa branche.
+
+**Vérifications réelles** : `npm install` OK · suppression de `node_modules` + `npm ci` OK · suppression + `npm install` OK · `npm ls eslint @eslint/js typescript-eslint` propre · `npx eslint .` 0 erreur · typecheck OK · tests 28/28 · `npm run build` OK · `npm run dist` OK → `dist/GarageFlows-Contract-Generator-Setup.exe` (106,7 Mo, contenu app.asar vérifié : main, preload, renderer, exemples).

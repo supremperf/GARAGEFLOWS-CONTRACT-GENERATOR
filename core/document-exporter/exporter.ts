@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { ensureStorageDirectories } from '../../storage/storage-paths';
 import { ExportFormat } from '../types';
 import { parseDocumentFile } from '../document-parser';
 
@@ -70,7 +71,13 @@ export async function exportGeneratedDocumentToDisk(params: {
     fs.mkdirSync(destinationDir, { recursive: true });
   }
 
+  const protectedDir = path.join(ensureStorageDirectories().generated, 'professional');
+  const canonicalDestination = fs.realpathSync(destinationDir);
+  const canonicalProtected = fs.existsSync(protectedDir) ? fs.realpathSync(protectedDir) : path.resolve(protectedDir);
+  const protectedRelative = path.relative(canonicalProtected, canonicalDestination);
+  if (protectedRelative === '' || (!protectedRelative.startsWith('..') && !path.isAbsolute(protectedRelative))) throw new Error('Export générique interdit dans le stockage contractuel protégé.');
   const targetPath = path.resolve(destinationDir, finalFileName);
+  if (fs.existsSync(targetPath) && fs.lstatSync(targetPath).isSymbolicLink()) throw new Error('Écrasement d’un lien symbolique interdit.');
   const resolvedDir = path.resolve(destinationDir);
   if (!targetPath.startsWith(resolvedDir)) {
     throw new Error('Chemin de destination invalide ou tentative de traversée de dossier bloquée.');

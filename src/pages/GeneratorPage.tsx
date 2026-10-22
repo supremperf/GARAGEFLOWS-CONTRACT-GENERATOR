@@ -1,3 +1,4 @@
+import ProfessionalContractWizard from './ProfessionalContractWizard';
 import FilePicker from '../FilePicker';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -9,7 +10,7 @@ import type { ExportFormat } from '../../core/types';
 
 const STEPS = ['Modèle', 'Client', 'Informations', 'Variables', 'Aperçu', 'Export'];
 
-export default function GeneratorPage({ notify, initialTemplateId }: { notify: (m: string) => void; initialTemplateId?: string }) {
+function GenericGeneratorPage({ notify, initialTemplateId }: { notify: (m: string) => void; initialTemplateId?: string }) {
   const [step, setStep] = useState(1);
   const [templates, setTemplates] = useState<TemplateRecord[]>([]);
   const [clients, setClients] = useState<ClientRecord[]>([]);
@@ -297,4 +298,16 @@ export default function GeneratorPage({ notify, initialTemplateId }: { notify: (
       </div>
     </div>
   );
+}
+
+
+export default function GeneratorPage(props: { notify: (m: string) => void; initialTemplateId?: string; initialClientId?: string; initialContractId?: string }) {
+  const [professional, setProfessional] = useState(Boolean(props.initialClientId || props.initialContractId));
+  return <div className="stack">
+    <div className="row" role="group" aria-label="Type de génération">
+      <button className={professional ? 'btn-ghost' : 'btn'} aria-pressed={!professional} onClick={() => setProfessional(false)}>Modèles importés</button>
+      <button className={professional ? 'btn' : 'btn-ghost'} aria-pressed={professional} onClick={() => setProfessional(true)}>Contrat professionnel GarageFlows</button>
+    </div>
+    {professional ? <ProfessionalContractWizard notify={props.notify} initialClientId={props.initialClientId} initialContractId={props.initialContractId} /> : <GenericGeneratorPage notify={props.notify} initialTemplateId={props.initialTemplateId} />}
+  </div>;
 }

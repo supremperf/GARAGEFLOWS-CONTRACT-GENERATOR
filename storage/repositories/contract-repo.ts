@@ -5,6 +5,7 @@ import { getSqliteDatabase, persistDatabaseToDisk } from '../database/sqlite-db'
 function rowToContract(row: Record<string, unknown>): GeneratedContractRecord {
   return {
     id: String(row.id),
+    professionalContractId: row.professional ? String(row.id) : undefined,
     templateId: String(row.template_id),
     templateName: String(row.template_name),
     clientId: row.client_id ? String(row.client_id) : undefined,
@@ -22,7 +23,7 @@ function rowToContract(row: Record<string, unknown>): GeneratedContractRecord {
 
 export async function listContracts(): Promise<GeneratedContractRecord[]> {
   const db = await getSqliteDatabase();
-  const stmt = db.prepare('SELECT * FROM contracts ORDER BY created_at DESC');
+  const stmt = db.prepare('SELECT contracts.*, EXISTS(SELECT 1 FROM professional_contracts p WHERE p.id = contracts.id) AS professional FROM contracts ORDER BY created_at DESC');
   const items: GeneratedContractRecord[] = [];
   while (stmt.step()) {
     items.push(rowToContract(stmt.getAsObject()));
@@ -33,7 +34,7 @@ export async function listContracts(): Promise<GeneratedContractRecord[]> {
 
 export async function getContract(id: string): Promise<GeneratedContractRecord | null> {
   const db = await getSqliteDatabase();
-  const stmt = db.prepare('SELECT * FROM contracts WHERE id = ?');
+  const stmt = db.prepare('SELECT contracts.*, EXISTS(SELECT 1 FROM professional_contracts p WHERE p.id = contracts.id) AS professional FROM contracts WHERE id = ?');
   stmt.bind([id]);
   if (!stmt.step()) {
     stmt.free();
@@ -49,7 +50,7 @@ export async function listContractsByClient(clientId: string): Promise<Generated
   return all.filter((c) => c.clientId === clientId);
 }
 
-export async function saveContract(record: GeneratedContractRecord): Promise<GeneratedContractRecord> {
+export async function saveContract(record: GeneratedContractRecord, persist = true): Promise<GeneratedContractRecord> {
   const db = await getSqliteDatabase();
   db.run(
     `INSERT INTO contracts (
@@ -72,13 +73,15 @@ export async function saveContract(record: GeneratedContractRecord): Promise<Gen
       record.createdAt,
     ]
   );
-  persistDatabaseToDisk();
+  if (persist) persistDatabaseToDisk();
   return record;
 }
 
 export async function deleteContract(id: string, deleteFile: boolean): Promise<void> {
   const current = await getContract(id);
   if (!current) throw new Error('Contrat introuvable.');
+  const protectedRecord = await (await import('./professional-contract-repo.js')).getProfessionalContract(id);
+  if (protectedRecord) throw new Error('Suppression interdite : version contractuelle protégée. Utiliser l’archivage.');
   const db = await getSqliteDatabase();
   db.run('DELETE FROM contracts WHERE id = ?', [id]);
   persistDatabaseToDisk();

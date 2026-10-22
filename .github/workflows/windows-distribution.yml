@@ -50,6 +50,7 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run test:runtime
+      - run: node scripts/test-professional-runtime.cjs
       - id: browser
         run: npx playwright install chromium
       - run: npm run test:ui -- --reporter=list,github

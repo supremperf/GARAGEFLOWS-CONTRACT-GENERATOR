@@ -8,7 +8,13 @@ import { ensureStorageDirectories } from '../storage-paths';
 let dbInstance: Database | null = null;
 let currentDbFilePath: string | null = null;
 
+let initialization: Promise<Database> | null = null;
 export async function getSqliteDatabase(): Promise<Database> {
+  if (initialization) return initialization;
+  initialization = openSqliteDatabase();
+  try { return await initialization; } finally { initialization = null; }
+}
+async function openSqliteDatabase(): Promise<Database> {
   const dirs = ensureStorageDirectories();
   const dbPath = path.join(dirs.database, 'garageflows.sqlite');
 
@@ -112,6 +118,19 @@ function initializeSchema(db: Database): void {
       report_json TEXT NOT NULL,
       created_at TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS professional_models (
+      id TEXT PRIMARY KEY, payload_json TEXT NOT NULL, created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS professional_contracts (
+      id TEXT PRIMARY KEY, number TEXT UNIQUE NOT NULL, client_id TEXT NOT NULL,
+      parent_id TEXT, payload_json TEXT NOT NULL, created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_professional_client ON professional_contracts(client_id);
+    CREATE TABLE IF NOT EXISTS professional_contract_events (
+      id TEXT PRIMARY KEY, contract_id TEXT NOT NULL, payload_json TEXT NOT NULL, position INTEGER NOT NULL UNIQUE
+    );
+    CREATE TABLE IF NOT EXISTS professional_counters (year TEXT PRIMARY KEY, next_number INTEGER NOT NULL);
 
     CREATE TABLE IF NOT EXISTS key_value_store (
       key TEXT PRIMARY KEY,

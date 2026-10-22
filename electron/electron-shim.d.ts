@@ -59,6 +59,8 @@ declare module 'electron' {
     show(): void;
     close(): void;
     webContents: {
+      readonly id: number;
+      session: { webRequest: { onBeforeSendHeaders(listener: (details: { url: string; webContentsId?: number; requestHeaders: Record<string, string> }, callback: (response: { requestHeaders: Record<string, string> }) => void) => void): void } };
       on(event: 'will-navigate', listener: (event: { preventDefault(): void }, url: string) => void): void;
       setWindowOpenHandler(
         handler: (details: { url: string }) => { action: 'allow' | 'deny'; overrideBrowserWindowOptions?: BrowserWindowOptions }
@@ -69,6 +71,7 @@ declare module 'electron' {
   export const app: {
     readonly isPackaged: boolean;
     setAppUserModelId(id: string): void;
+    requestSingleInstanceLock(): boolean;
     whenReady(): Promise<void>;
     quit(): void;
     on(event: 'window-all-closed' | 'activate', listener: () => void): void;

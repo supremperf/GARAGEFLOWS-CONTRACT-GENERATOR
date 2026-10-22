@@ -161,6 +161,8 @@ export async function updateClient(id: string, input: Partial<ClientRecord>): Pr
 }
 
 export async function deleteClient(id: string): Promise<void> {
+  const linked = await (await import('./professional-contract-repo.js')).listProfessionalContracts(id);
+  if (linked.length) throw new Error('Suppression interdite : des contrats professionnels sont liés à ce client.');
   const existing = await getClient(id);
   if (!existing) throw new Error('Client introuvable.');
   const db = await getSqliteDatabase();

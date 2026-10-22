@@ -162,6 +162,21 @@ try {
     const dirs = require(path.join(app.getAppPath(), 'dist-electron/storage/storage-paths.js')).ensureStorageDirectories();
     fs.writeFileSync(path.join(dirs.generated, 'contrat-test.docx'), generated.buffer);
     fs.writeFileSync(path.join(dirs.signatures, 'signature-test.png'), canvas.toBuffer('image/png'));
+    console.log('GF_SMOKE_STEP:authoritative bundled professional contract, immutable PDF and SQLite history');
+    const source = require(path.join(app.getAppPath(), 'dist-electron/core/contracts/bundled-model.js')).bundledProfessionalModel();
+    if (source.sha256 !== '82ff73ad47b495a9091ac9b82d3cd1ddba2305c6f2d3cf60b4f4431aa94dcf5c') throw new Error('Installed legal source hash mismatch');
+    await profileRepo.saveProfessionalProfile({ nom: 'EXPLOITANT_TEST', prenom: 'Camille', nomCommercial: 'GarageFlows', formeJuridique: 'Entrepreneur individuel — Micro-entreprise', adresse: '1 rue du TEST', codePostal: '67000', ville: 'Strasbourg', emailPro: 'native@example.test' });
+    const professionalClient = await repo.createClient({ nom: 'SPECIMEN_NATIF', entreprise: 'SPÉCIMEN INSTALLATION — DONNÉES SYNTHÉTIQUES — NE PAS SIGNER', email: 'client@example.test', formeJuridique: 'SAS', siret: '98765432101234', adresse: '2 rue du TEST', codePostal: '67000', ville: 'Strasbourg', representantLegal: 'Camille TEST', fonctionRepresentant: 'Présidence', dateSouscription: '2019-12-30', dateDebut: '2020-01-01', prixTTC: '99,99' });
+    const professionalService = require(path.join(app.getAppPath(), 'dist-electron/electron/services/professional-contract-service.js'));
+    const professionalDraft = await professionalService.createProfessionalDraft({ requestId: require('node:crypto').randomUUID(), clientId: professionalClient.id, modelId: source.id, terms: { taxRegime: 'vat', firstDueDate: '2020-01-02', legalReviewAccepted: true } });
+    const professionalPreview = await professionalService.previewProfessional(professionalDraft.id);
+    const beforePdf = await professionalService.readProfessionalPdf(professionalDraft.id, 'preview');
+    const professionalFinal = await professionalService.generateProfessional(professionalDraft.id, professionalPreview.previewHash);
+    const afterPdf = await professionalService.readProfessionalPdf(professionalDraft.id, 'original');
+    if (!beforePdf.bytes.equals(afterPdf.bytes)) throw new Error('Installed preview/original bytes diverge');
+    const professionalParsed = await parsePdfBuffer(afterPdf.bytes, 'native-professional-specimen.pdf');
+    if (professionalParsed.pageCount < 15 || !/FIN DU CONTRAT/.test(professionalParsed.fullText) || !/Désignation/.test(professionalParsed.fullText)) throw new Error('Installed professional PDF missing source content');
+    const professional = { id: professionalFinal.id, hash: professionalFinal.pdfHash, pages: professionalParsed.pageCount, sourceHash: source.sha256 };
     console.log('GF_SMOKE_STEP:runtime security preferences');
     const windows = require('electron').BrowserWindow.getAllWindows();
     const main = windows.find(w => w.webContents.getURL().startsWith('http://127.0.0.1:'));
@@ -169,12 +184,25 @@ try {
     if (!preferences.contextIsolation || preferences.nodeIntegration || !preferences.sandbox) throw new Error('Electron security flags changed');
     const branding = path.join(process.resourcesPath, 'branding/icon.ico');
     if (!fs.existsSync(branding)) throw new Error('Missing installed ICO');
-    return { electron: process.versions.electron, node: process.versions.node, arch: process.arch, appVersion: app.getVersion(), security: { contextIsolation: preferences.contextIsolation, nodeIntegration: preferences.nodeIntegration, sandbox: preferences.sandbox }, canvasPngBytes: canvas.toBuffer('image/png').length, ocrText: ocr.text, positionedPdfItems: parsed.pdfItems.length, appPath: app.getAppPath() };
+    return { professional, electron: process.versions.electron, node: process.versions.node, arch: process.arch, appVersion: app.getVersion(), security: { contextIsolation: preferences.contextIsolation, nodeIntegration: preferences.nodeIntegration, sandbox: preferences.sandbox }, canvasPngBytes: canvas.toBuffer('image/png').length, ocrText: ocr.text, positionedPdfItems: parsed.pdfItems.length, appPath: app.getAppPath() };
   }), 'installed business runtime');
   assert.equal(report.runtime.arch, 'x64');
   assert.equal(report.runtime.appVersion, policy.appVersion);
   assert.equal(report.runtime.electron, policy.config.electronVersion);
   stage('packaged x64 canvas native binding/DLL, real offline OCR, ESM PDF.js, SQLite/WASM, imported DOCX and generated contract without Node/npm on PATH');
+  // Real renderer fetches must receive the main-process capability; raw HTTP must not.
+  const protectedUrl = `${page.url().replace(/\/$/, '')}/api/professional/contracts/${report.runtime.professional.id}/pdf?variant=original`;
+  assert.equal((await fetch(protectedUrl)).status, 403, 'Installed API must deny unauthorised raw HTTP');
+  const trustedPdf = await page.evaluate(async id => {
+    const response = await fetch(`/api/professional/contracts/${id}/pdf?variant=original`);
+    if (!response.ok) throw new Error(`Trusted installed renderer denied: ${response.status}`);
+    const bytes = await response.arrayBuffer();
+    const hash = Array.from(new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', bytes)), b => b.toString(16).padStart(2, '0')).join('');
+    return { hash, bytes: bytes.byteLength };
+  }, report.runtime.professional.id);
+  assert.equal(trustedPdf.hash, report.runtime.professional.hash);
+  assert.ok(trustedPdf.bytes > 10000);
+  stage('installed authoritative legal source, native CommonJS PDF.js, SQLite generation, exact PDF hash and actual main/renderer 403/200 capability');
   const shortcutTargets = JSON.parse(powershell("$shell=New-Object -ComObject WScript.Shell; ConvertTo-Json -Compress -InputObject @(Get-ChildItem ([Environment]::GetFolderPath('Desktop')),([Environment]::GetFolderPath('Programs')) -Filter '*GarageFlows*.lnk' -Recurse | ForEach-Object { $shell.CreateShortcut($_.FullName).TargetPath })"));
   assert.ok(Array.isArray(shortcutTargets), 'Shortcut inspection must return an array');
   // Shell links can expand RUNNER~1 to runneradmin: compare real file identity, not display spelling.
@@ -207,8 +235,10 @@ try {
     const templates = await require(`${app.getAppPath()}/dist-electron/storage/repositories/template-repo.js`).listTemplates();
     const profile = await require(`${app.getAppPath()}/dist-electron/storage/repositories/profile-repo.js`).getProfessionalProfile();
     const subscription = await require(`${app.getAppPath()}/dist-electron/storage/repositories/profile-repo.js`).getSubscriptionConfig();
-    return { clients: clients.map(c => c.nom), templates: templates.map(t => t.name), company: profile.entrepriseNom, price: subscription.prixTTC };
+    const professional = await require(`${app.getAppPath()}/dist-electron/storage/repositories/professional-contract-repo.js`).listProfessionalContracts();
+    return { professional: professional.map(c => ({ id: c.id, hash: c.pdfHash })), clients: clients.map(c => c.nom), templates: templates.map(t => t.name), company: profile.entrepriseNom, price: subscription.prixTTC };
   }), 'reinstalled business persistence');
+  assert.ok(retained.professional.some(c => c.id === report.runtime.professional.id && c.hash === report.runtime.professional.hash));
   assert.ok(retained.clients.includes('TEST_INSTALLATION_ISOLE'));
   assert.ok(retained.templates.includes('TEST_MODELE_ISOLE'));
   assert.equal(retained.company, 'TEST INSTALLATION');

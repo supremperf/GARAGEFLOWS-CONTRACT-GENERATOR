@@ -2,6 +2,10 @@ import fs from 'fs';
 import path from 'path';
 import express from 'express';
 import cors from 'cors';
+import { localAccess } from './security/local-access';
+import { professionalRoutes } from './professional-routes';
+import { getProfessionalContract } from '../storage/repositories/professional-contract-repo';
+import { readProfessionalPdf } from './services/professional-contract-service';
 import { api, importBundledExamples } from './services/app-service';
 import { OFFICIAL_VARIABLE_DICTIONARY } from '../core/variable-detection/dictionary';
 import { writeAppLog } from './security/logger';
@@ -12,6 +16,8 @@ export interface ServerOptions {
   /** Interface d'écoute. Défaut : 127.0.0.1 uniquement (jamais le réseau local). Surchargeable par env HOST pour le dev encadré. */
   host?: string;
   staticDir?: string;
+  localCapability?: string;
+  allowedOrigins?: string[];
   electronDialogs?: {
     openFile: (filters?: { name: string; extensions: string[] }[]) => Promise<string | null>;
     openDirectory: () => Promise<string | null>;
@@ -25,11 +31,11 @@ function idOf(value: string | string[]): string {
 
 function asyncRoute(handler: (req: express.Request, res: express.Response) => Promise<void>) {
   return (req: express.Request, res: express.Response) => {
-    handler(req, res).catch((error: Error & { code?: string; existingPath?: string }) => {
+    handler(req, res).catch((error: Error & { code?: string; existingPath?: string; status?: number }) => {
       const message = error.message || 'Erreur interne.';
       const code = error.code;
       writeAppLog('ERROR', message);
-      const status = code === 'FILE_ALREADY_EXISTS' ? 409 : /introuvable|invalide|obligatoire|non pris en charge|interdit|bloqué|incomplet/i.test(message) ? 400 : 500;
+      const status = error.status && error.status >= 400 && error.status <= 599 ? error.status : code === 'FILE_ALREADY_EXISTS' ? 409 : /introuvable|invalide|obligatoire|non pris en charge|interdit|bloqué|incomplet/i.test(message) ? 400 : 500;
       res.status(status).json({
         error: message,
         code,
@@ -42,8 +48,7 @@ function asyncRoute(handler: (req: express.Request, res: express.Response) => Pr
 /**
  * Origines autorisées en CORS : uniquement les boucles locales (interface Electron
  * servie par ce même serveur, et Vite en développement via son proxy).
- * Aucune origine externe (site web, réseau local) ne peut appeler l'API :
- * c'est la protection contre les attaques par navigateur interposé (DNS rebinding inclus).
+ * CORS n’est pas une autorisation : localAccess contrôle réellement chaque requête API.
  */
 function isAllowedOrigin(origin: string | undefined): boolean {
   if (!origin) return true; // client non-navigateur ou même origine (pas d'en-tête Origin)
@@ -58,6 +63,7 @@ function isAllowedOrigin(origin: string | undefined): boolean {
 export function createApp(options: ServerOptions = {}) {
   const app = express();
   app.disable('x-powered-by');
+  app.use('/api', localAccess(options.localCapability || process.env.GARAGEFLOWS_LOCAL_CAPABILITY || process.env.GF_UI_TOKEN, options.allowedOrigins || []));
   app.use(
     cors({
       origin: (origin, callback) => {
@@ -75,6 +81,8 @@ export function createApp(options: ServerOptions = {}) {
     next();
   });
   app.use(express.json({ limit: '80mb' }));
+
+  professionalRoutes(app);
 
   app.get('/api/dictionary', (_req, res) => {
     res.json(
@@ -221,6 +229,12 @@ export function createApp(options: ServerOptions = {}) {
   }));
 
   app.get('/api/contracts/:id/download', asyncRoute(async (req, res) => {
+    const protectedRecord = await getProfessionalContract(idOf(req.params.id));
+    if (protectedRecord) {
+      const doc = await readProfessionalPdf(protectedRecord.id, 'original');
+      res.type('application/pdf').attachment(doc.name).send(doc.bytes);
+      return;
+    }
     const { contract, buffer } = await api.readContractFile(idOf(req.params.id));
     res.setHeader('Content-Type', 'application/octet-stream');
     res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(contract.fileName)}"`);

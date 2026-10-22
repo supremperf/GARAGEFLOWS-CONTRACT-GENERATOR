@@ -1,0 +1,3 @@
+# The authoritative legal source is hashed as UTF-8 bytes. Do not convert LF to
+# CRLF on Windows checkout or alter its intentional Markdown hard line breaks.
+resources/contracts/garageflows-professional-v1.0-2026-10-22.md -text

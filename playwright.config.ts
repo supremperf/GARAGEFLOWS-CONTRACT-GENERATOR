@@ -1,4 +1,7 @@
+import { randomBytes } from 'node:crypto';
 import { defineConfig } from '@playwright/test';
+
+process.env.GF_UI_TOKEN ||= randomBytes(32).toString('hex');
 
 export default defineConfig({
   testDir: './e2e',
@@ -6,6 +9,7 @@ export default defineConfig({
   workers: 1,
   timeout: 45_000,
   use: {
+    extraHTTPHeaders: { 'X-GF-Local-Capability': process.env.GF_UI_TOKEN },
     baseURL: 'http://127.0.0.1:5180',
     viewport: { width: 1100, height: 720 },
     headless: true,

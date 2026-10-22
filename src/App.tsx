@@ -42,6 +42,8 @@ export default function App() {
   const [hits, setHits] = useState<SearchHit[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [generateTemplateId, setGenerateTemplateId] = useState<string | undefined>();
+  const [generateClientId, setGenerateClientId] = useState<string | undefined>();
+  const [generateContractId, setGenerateContractId] = useState<string | undefined>();
   const [generateKey, setGenerateKey] = useState(0);
   const contentRef = useRef<HTMLElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -93,7 +95,8 @@ export default function App() {
     return () => window.clearTimeout(t);
   }, [query]);
 
-  const goGenerate = (templateId?: string) => { setGenerateTemplateId(templateId); setGenerateKey((k) => k + 1); setPage('generate'); };
+  const goGenerate = (templateId?: string) => { setGenerateClientId(undefined); setGenerateContractId(undefined); setGenerateTemplateId(templateId); setGenerateKey((k) => k + 1); setPage('generate'); };
+  const goProfessional = (clientId?: string, contractId?: string) => { setGenerateTemplateId(undefined); setGenerateClientId(clientId); setGenerateContractId(contractId); setGenerateKey(k => k + 1); setPage('generate'); };
   const displayName = profile ? (`${profile.prenom || ''} ${profile.nom || ''}`.trim() || profile.nomCommercial || profile.entrepriseNom || 'Mon garage') : 'Mon garage';
   const initials = displayName.split(/\s+/).map((w: string) => w[0]).slice(0, 2).join('').toUpperCase() || 'GF';
   const garage = profile?.nomCommercial || profile?.entrepriseNom || 'GarageFlows';
@@ -183,11 +186,11 @@ export default function App() {
         <p id="scroll-help" className="sr-only">Défilement avec les flèches haut et bas, Page précédente et suivante, Espace, Début et Fin. Dans un champ de saisie, les touches conservent leur fonction habituelle.</p>
         <section ref={contentRef} id="page-content" className="content" key={page} tabIndex={0} data-scroll-region="main" aria-label="Contenu de la page" aria-describedby="scroll-help">
           {page === 'dashboard' && <DashboardPage onNavigate={setPage} onGenerate={goGenerate} notify={notify} />}
-          {page === 'generate' && <GeneratorPage key={generateKey} notify={notify} initialTemplateId={generateTemplateId} />}
+          {page === 'generate' && <GeneratorPage key={generateKey} notify={notify} initialTemplateId={generateTemplateId} initialClientId={generateClientId} initialContractId={generateContractId} />}
           {page === 'templates' && <TemplatesPage notify={notify} />}
-          {page === 'clients' && <ClientsPage notify={notify} />}
+          {page === 'clients' && <ClientsPage notify={notify} onGenerateContract={id => goProfessional(id)} onResumeContract={id => goProfessional(undefined, id)} />}
           {page === 'profile' && <ProfilePage notify={notify} />}
-          {page === 'history' && <HistoryPage notify={notify} />}
+          {page === 'history' && <HistoryPage notify={notify} onResumeContract={id => goProfessional(undefined, id)} />}
           {page === 'settings' && <SettingsPage notify={notify} />}
         </section>
       </main>

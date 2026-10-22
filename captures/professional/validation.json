@@ -1,0 +1,1689 @@
+{
+  "scope": "Source juridique intégrale effectivement fournie ; spécimen à identités et données synthétiques uniquement. Validation technique, aucune certification juridique/native/physique.",
+  "baseCommit": "0626a0d41ca5fd65b895c86e0f57cf30cbfedd1b",
+  "source": {
+    "file": "resources/contracts/garageflows-professional-v1.0-2026-10-22.md",
+    "sha256": "82ff73ad47b495a9091ac9b82d3cd1ddba2305c6f2d3cf60b4f4431aa94dcf5c",
+    "occurrences": 32,
+    "version": "1.0",
+    "date": "2026-10-22"
+  },
+  "pdf": {
+    "file": "captures/professional/modele-fourni-specimen.pdf",
+    "sha256": "f2ec23897f3d4146ed7fc10eda5bce6658a6b2fb55dbb4863dbdadb468b4aef5",
+    "pages": 24,
+    "allPagesRendered": true,
+    "allPageImagesNonblank": true,
+    "previewIdenticalToOriginal": true,
+    "visualReview": "Vue globale des 24 pages ; détails couverture, parties/corps, RGPD, bon de commande, signatures/final. Aucune sortie papier revendiquée."
+  },
+  "ui": {
+    "stats": {
+      "startTime": "2026-10-22T20:27:26.945Z",
+      "duration": 99895.614,
+      "expected": 56,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "cases": [
+      {
+        "name": "champ Nom* : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "champ Prénom : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "champ Lieu de naissance : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "champ Téléphone : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "champ E-mail : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "champ Adresse : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "champ Complément : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "champ Code postal : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "champ Ville : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "champ Pays : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "champ Entreprise : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "champ Forme juridique : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "champ SIRET : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "champ TVA intracommunautaire : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "champ Représentant légal : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "champ Fonction : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "champ Abonnement : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "champ Prix TTC : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "champ Notes : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "champ Champ personnalisé : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "champ Valeur du champ personnalisé : clic, focus, saisie, sélection et modification",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "calendrier Date de naissance : ouverture souris et choix clavier d'une date",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "calendrier Date de souscription : ouverture souris et choix clavier d'une date",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "calendrier Date de début : ouverture souris et choix clavier d'une date",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "civilité, fréquence, paiement : menus natifs ouverts et sélectionnés au clavier",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "Tab et Maj+Tab parcourent tous les champs sans perte de valeurs ; copier-coller",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "Ajouter ne soumet pas le client ; Entrée ajoute le champ personnalisé",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "nom obligatoire, erreur serveur visible et formulaire conservé",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "échec réseau : erreur explicite, aucune confirmation mensongère, saisie conservée",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "tous les contrôles accessibles sans overlay à 1440px",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "tous les contrôles accessibles sans overlay à 900px",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "tous les contrôles accessibles sans overlay à 375px",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "client complet et minimal : SQLite réel, anti-double-submit, édition, redémarrage du moteur",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "flèches, PageUp/Down, Espace, Maj+Espace, Début/Fin après navigation",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "saisie, sélections et activation des boutons ne déclenchent pas le scroll personnalisé",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "onglets de navigation compacts et actions d’import sont accessibles au clavier",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "modale : scroll isolé, focus piégé, Échap et restauration du focus",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "rapport : modal natif défilant et fermeture par Échap",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "aperçu et zoom : barre d’actions séparée du document, boutons toujours accessibles",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "journal imbriqué : les touches défilent le panneau ciblé, pas la page derrière",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "recherche : résultats accessibles par la flèche bas et fermeture par Échap",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "Fin atteint le bas après le chargement réel retardé des clients",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "aucun chevauchement ni débordement des boutons : 1440×900",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "aucun chevauchement ni débordement des boutons : 1100×720",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "aucun chevauchement ni débordement des boutons : 900×650",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "aucun chevauchement ni débordement des boutons : 600×720",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "aucun chevauchement ni débordement des boutons : 375×667",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "aucun chevauchement ni débordement des boutons : 320×568",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "aucun chevauchement ni débordement des boutons : 1100×480",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "source intégrale fournie : modèle embarqué disponible sans import",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "installation explicite d’un modèle de TEST intégral par l’interface",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "client présélectionné → 6 étapes → PDF réel → génération et téléchargement identique",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "historique et transitions réelles : attente, archivage, refus de suppression et signature sans preuve",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "API et PDF refusent les appels sans autorisation locale et les origines étrangères",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "PDF de stress : noms, représentants, conditions et annexe sur plusieurs pages",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      },
+      {
+        "name": "source originale fournie : parcours réel, toutes les pages, annexe/tableau/signatures et octets immuables",
+        "status": "expected",
+        "results": [
+          "passed"
+        ]
+      }
+    ]
+  },
+  "unit": {
+    "total": 207,
+    "passed": 206,
+    "failed": 1,
+    "professional": 76,
+    "professionalPassed": 76,
+    "cases": [
+      {
+        "name": "Identité officielle GarageFlows conserve exactement le fichier fourni, sans redessin ni changement de couleurs",
+        "status": "passed"
+      },
+      {
+        "name": "Identité officielle GarageFlows fournit chaque résolution PNG et chaque entrée ICO correspondante",
+        "status": "passed"
+      },
+      {
+        "name": "Identité officielle GarageFlows dérive l’emblème par recadrage carré, sans déformation ni suppression du halo",
+        "status": "passed"
+      },
+      {
+        "name": "Identité officielle GarageFlows remplace le monogramme de marque sans remplacer les pictogrammes métier",
+        "status": "failed"
+      },
+      {
+        "name": "Identité officielle GarageFlows partage la même identité entre Electron, Windows, NSIS et les ressources installées",
+        "status": "passed"
+      },
+      {
+        "name": "Source intégrale fournie : intégration réelle, sans import manuel conserve les octets UTF-8 versionnés et leur empreinte figée",
+        "status": "passed"
+      },
+      {
+        "name": "Source intégrale fournie : intégration réelle, sans import manuel installe automatiquement une seule version canonique sans toucher aux autres modèles",
+        "status": "passed"
+      },
+      {
+        "name": "Source intégrale fournie : intégration réelle, sans import manuel distingue les 32 occurrences et les quatre usages DATE",
+        "status": "passed"
+      },
+      {
+        "name": "Source intégrale fournie : intégration réelle, sans import manuel date réellement souscription, activation et première échéance, sans dater une signature",
+        "status": "passed"
+      },
+      {
+        "name": "Source intégrale fournie : intégration réelle, sans import manuel ne confond pas le fournisseur signataire avec le représentant du client",
+        "status": "passed"
+      },
+      {
+        "name": "Source intégrale fournie : intégration réelle, sans import manuel ne confond pas le tarif particulier et le mode de paiement",
+        "status": "passed"
+      },
+      {
+        "name": "Source intégrale fournie : intégration réelle, sans import manuel refuse une correspondance globale ambiguë pour les DATE répétées",
+        "status": "passed"
+      },
+      {
+        "name": "Source intégrale fournie : intégration réelle, sans import manuel bloque la source si la vraie date de souscription manque",
+        "status": "passed"
+      },
+      {
+        "name": "Source intégrale fournie : intégration réelle, sans import manuel bloque une souscription ultérieure à l’activation déclarée",
+        "status": "passed"
+      },
+      {
+        "name": "Source intégrale fournie : intégration réelle, sans import manuel signale les clauses à valider sans les modifier",
+        "status": "passed"
+      },
+      {
+        "name": "Source intégrale fournie : intégration réelle, sans import manuel un engagement central n’est pas ignoré par un appel direct au serveur",
+        "status": "passed"
+      },
+      {
+        "name": "Source intégrale fournie : intégration réelle, sans import manuel les conditions tarifaires dérogatoires sont dans le bon de commande et non seulement la couverture",
+        "status": "passed"
+      },
+      {
+        "name": "Source intégrale fournie : intégration réelle, sans import manuel les pipes et retours à la ligne d’une condition ne détruisent pas la structure du tableau",
+        "status": "passed"
+      },
+      {
+        "name": "Source intégrale fournie : intégration réelle, sans import manuel le PDF contient chaque paragraphe original non variable et toutes les signatures/fins de document",
+        "status": "passed"
+      },
+      {
+        "name": "Source intégrale fournie : intégration réelle, sans import manuel le vrai modèle suit aperçu, génération, hash et historique existant sans différence d’octets",
+        "status": "passed"
+      },
+      {
+        "name": "Source intégrale fournie : intégration réelle, sans import manuel la cellule longue du bon de commande se poursuit sur plusieurs pages sans perte",
+        "status": "passed"
+      },
+      {
+        "name": "Source intégrale fournie : intégration réelle, sans import manuel les noms, adresses et signataires longs conservent leurs fins et leurs zones de signature",
+        "status": "passed"
+      },
+      {
+        "name": "Source intégrale fournie : intégration réelle, sans import manuel le millésime du numéro suit la date Europe/Paris, même à la frontière de l’année UTC",
+        "status": "passed"
+      },
+      {
+        "name": "Source intégrale fournie : intégration réelle, sans import manuel les ressources contractuelles sont incluses dans la distribution Windows",
+        "status": "passed"
+      },
+      {
+        "name": "Source intégrale fournie : intégration réelle, sans import manuel l’original PDF refuse l’import à l’identique comme prétendue pièce signée",
+        "status": "passed"
+      },
+      {
+        "name": "portable ASAR inspection normalizes actual listing/API path /node_modules/packed/index.js",
+        "status": "passed"
+      },
+      {
+        "name": "portable ASAR inspection normalizes actual listing/API path \\node_modules\\packed\\index.js",
+        "status": "passed"
+      },
+      {
+        "name": "portable ASAR inspection normalizes actual listing/API path node_modules/packed/index.js",
+        "status": "passed"
+      },
+      {
+        "name": "portable ASAR inspection normalizes actual listing/API path node_modules\\packed\\index.js",
+        "status": "passed"
+      },
+      {
+        "name": "portable ASAR inspection rejects unsafe/empty logical path ../escape",
+        "status": "passed"
+      },
+      {
+        "name": "portable ASAR inspection rejects unsafe/empty logical path /a/../escape",
+        "status": "passed"
+      },
+      {
+        "name": "portable ASAR inspection rejects unsafe/empty logical path a\\..\\escape",
+        "status": "passed"
+      },
+      {
+        "name": "portable ASAR inspection rejects unsafe/empty logical path C:\\escape",
+        "status": "passed"
+      },
+      {
+        "name": "portable ASAR inspection rejects unsafe/empty logical path a//b",
+        "status": "passed"
+      },
+      {
+        "name": "portable ASAR inspection rejects unsafe/empty logical path a\u0000b",
+        "status": "passed"
+      },
+      {
+        "name": "portable ASAR inspection rejects unsafe/empty logical path /",
+        "status": "passed"
+      },
+      {
+        "name": "portable ASAR inspection rejects unsafe/empty logical path ",
+        "status": "passed"
+      },
+      {
+        "name": "portable ASAR inspection reproduces the exact old failure with the real ASAR Filesystem and Windows path API",
+        "status": "passed"
+      },
+      {
+        "name": "portable ASAR inspection reads a real packed file without treating a directory as a file",
+        "status": "passed"
+      },
+      {
+        "name": "portable ASAR inspection reads unpacked entries at their real physical location",
+        "status": "passed"
+      },
+      {
+        "name": "portable ASAR inspection finds a truly external module in resources/node_modules, not inside ASAR",
+        "status": "passed"
+      },
+      {
+        "name": "portable ASAR inspection does not assume every package exists",
+        "status": "passed"
+      },
+      {
+        "name": "portable ASAR inspection fails explicitly for an unpacked file absent on disk",
+        "status": "passed"
+      },
+      {
+        "name": "portable ASAR inspection fails explicitly for missing and corrupt archives",
+        "status": "passed"
+      },
+      {
+        "name": "portable ASAR inspection does not require a node_modules directory for a genuinely bundled archive",
+        "status": "passed"
+      },
+      {
+        "name": "détection des variables distingue chaque XXX et regroupe {{CLIENT_NOM}}",
+        "status": "passed"
+      },
+      {
+        "name": "détection des variables calcule 99,99 € TTC en 83,33 € HT sans erreur d’arrondi",
+        "status": "passed"
+      },
+      {
+        "name": "remplacement documentaire remplace un DOCX sans modifier l’original ni inventer de clause",
+        "status": "passed"
+      },
+      {
+        "name": "remplacement documentaire réécrit un PDF texte sans laisser les variables récupérables",
+        "status": "passed"
+      },
+      {
+        "name": "remplacement documentaire remplace les XXX distincts et conserve la formule Excel",
+        "status": "passed"
+      },
+      {
+        "name": "remplacement documentaire refuse un export incomplet et n’écrase pas un fichier existant",
+        "status": "passed"
+      },
+      {
+        "name": "sécurité des imports bloque un exécutable déguisé et un PDF corrompu",
+        "status": "passed"
+      },
+      {
+        "name": "strictly offline Electron OCR language adapter returns exactly the local file bytes, without exposing the backing Buffer pool",
+        "status": "passed"
+      },
+      {
+        "name": "strictly offline Electron OCR language adapter rejects network access instead of falling back to a CDN",
+        "status": "passed"
+      },
+      {
+        "name": "strictly offline Electron OCR language adapter rejects files outside the known language directories",
+        "status": "passed"
+      },
+      {
+        "name": "strictly offline Electron OCR language adapter rejects arbitrary files even in a known directory",
+        "status": "passed"
+      },
+      {
+        "name": "strictly offline Electron OCR language adapter retains development resources outside ASAR",
+        "status": "passed"
+      },
+      {
+        "name": "strictly offline Electron OCR language adapter prefers installed resources over the current working directory",
+        "status": "passed"
+      },
+      {
+        "name": "OCR worker logical module resolution preserves the resolver entry point and its dependency parents: /opt/GarageFlows/resources/app.asar/dist-electron/core/ocr/tesseract-worker.js",
+        "status": "passed"
+      },
+      {
+        "name": "OCR worker logical module resolution preserves the resolver entry point and its dependency parents: C:\\Application GarageFlows\\resources\\app.asar\\dist-electron\\core\\ocr\\tesseract-worker.js",
+        "status": "passed"
+      },
+      {
+        "name": "OCR worker logical module resolution preserves the resolver entry point and its dependency parents: /development/dist-electron/core/ocr/tesseract-worker.js",
+        "status": "passed"
+      },
+      {
+        "name": "pdfjs-dist v4 — extraction PDF (GHSA-wgrm-67xf-hhpq corrigée) extrait un PDF multipage avec caractères accentués français",
+        "status": "passed"
+      },
+      {
+        "name": "pdfjs-dist v4 — extraction PDF (GHSA-wgrm-67xf-hhpq corrigée) fournit une URL file: native au worker, y compris sous Windows",
+        "status": "passed"
+      },
+      {
+        "name": "pdfjs-dist v4 — extraction PDF (GHSA-wgrm-67xf-hhpq corrigée) rejette un fichier qui n’est pas un PDF",
+        "status": "passed"
+      },
+      {
+        "name": "pdfjs-dist v4 — extraction PDF (GHSA-wgrm-67xf-hhpq corrigée) signale un PDF corrompu sans planter (avertissements)",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées centimes exacts 99,99",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées centimes exacts 0.01",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées centimes exacts 1 000,50",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées centimes exacts 999999999.99",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées rejette montant ",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées rejette montant -1",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées rejette montant 99.999",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées rejette montant 99,99 €",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées rejette montant NaN",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées rejette montant 1e3",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées rejette montant 0x10",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées réconcilie exactement TTC = HT + TVA",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées ne déduit jamais un tarif absent du défaut 99,99",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées n’utilise pas un taux de TVA non enregistré",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées la franchise donne HT=TTC sans TVA fictive de 20 %",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées ne date pas une signature lors de l’émission",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées périodicité enregistrée trimestre : annuel cohérent",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées périodicité enregistrée semestre : annuel cohérent",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées les champs facultatifs vides ne bloquent pas",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées les identités obligatoires manquantes bloquent",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées rejette date 2026-02-30",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées rejette date 2026-13-01",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées rejette date ",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées rejette date 22/10/2026",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées rejette échéance ou fin avant effet",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées ne masque pas une remise incohérente",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées réconcilie remise effective sans inventer un échéancier annuel",
+        "status": "passed"
+      },
+      {
+        "name": "Contexte professionnel : montants, dates, absence de valeurs inventées tarif annuel explicitement dérogatoire et non reconverti en prix mensuel facturé",
+        "status": "passed"
+      },
+      {
+        "name": "Source juridique : import intégral immuable et substitutions littérales conserve exactement les caractères source et leur empreinte",
+        "status": "passed"
+      },
+      {
+        "name": "Source juridique : import intégral immuable et substitutions littérales refuse article manquant, annexe tronquée et correspondance manquante",
+        "status": "passed"
+      },
+      {
+        "name": "Source juridique : import intégral immuable et substitutions littérales un réimport exact est idempotent",
+        "status": "passed"
+      },
+      {
+        "name": "Source juridique : import intégral immuable et substitutions littérales ne traite pas $& ni les crochets d’une valeur comme une nouvelle variable",
+        "status": "passed"
+      },
+      {
+        "name": "Source juridique : import intégral immuable et substitutions littérales le texte intégral rendu conserve 27 articles, 15 sections et la fin",
+        "status": "passed"
+      },
+      {
+        "name": "PDF réel et conservation de toutes les pages PDF lisible, paginé, clauses finales présentes et coordonnées sans débordement",
+        "status": "passed"
+      },
+      {
+        "name": "PDF réel et conservation de toutes les pages noms, adresses, représentants et conditions très longs ne sont jamais tronqués",
+        "status": "passed"
+      },
+      {
+        "name": "PDF réel et conservation de toutes les pages l’aperçu et l’original sont identiques octet pour octet",
+        "status": "passed"
+      },
+      {
+        "name": "PDF réel et conservation de toutes les pages échoue explicitement sur un caractère non représentable plutôt que le supprimer",
+        "status": "passed"
+      },
+      {
+        "name": "Cycle de vie, accès, preuves et persistance brouillon et génération sont idempotents",
+        "status": "passed"
+      },
+      {
+        "name": "Cycle de vie, accès, preuves et persistance interdit une génération sans aperçu ou avec hash différent",
+        "status": "passed"
+      },
+      {
+        "name": "Cycle de vie, accès, preuves et persistance détecte une modification des données depuis la vérification",
+        "status": "passed"
+      },
+      {
+        "name": "Cycle de vie, accès, preuves et persistance verrouille les modifications après génération et préserve l’historique après mise à jour du tarif",
+        "status": "passed"
+      },
+      {
+        "name": "Cycle de vie, accès, preuves et persistance protège suppression générique, suppression client et export générique vers le dossier protégé",
+        "status": "passed"
+      },
+      {
+        "name": "Cycle de vie, accès, preuves et persistance refuse signature sans preuve et transition directe généré → actif",
+        "status": "passed"
+      },
+      {
+        "name": "Cycle de vie, accès, preuves et persistance acceptation déclarée ne change pas le statut en signé",
+        "status": "passed"
+      },
+      {
+        "name": "Cycle de vie, accès, preuves et persistance l’absence de transport e-mail et signature électronique est une erreur explicite",
+        "status": "passed"
+      },
+      {
+        "name": "Cycle de vie, accès, preuves et persistance pièce manuscrite attestée : original préservé, aucun niveau qualifié inventé, avenant séparé",
+        "status": "passed"
+      },
+      {
+        "name": "Cycle de vie, accès, preuves et persistance journal chaîné avec acteur réel du poste et persistance SQLite après reconnexion",
+        "status": "passed"
+      },
+      {
+        "name": "Cycle de vie, accès, preuves et persistance refuse API et PDF sans capacité, capacité incorrecte et origine étrangère",
+        "status": "passed"
+      },
+      {
+        "name": "Cycle de vie, accès, preuves et persistance ne divulgue pas de PDF altéré par l’ancienne route de téléchargement",
+        "status": "passed"
+      },
+      {
+        "name": "Cycle de vie, accès, preuves et persistance la migration additive se réexécute sans perdre clients ni contrats",
+        "status": "passed"
+      },
+      {
+        "name": "Cycle de vie, accès, preuves et persistance un brouillon archivé ne peut pas être réactivé par la route aperçu",
+        "status": "passed"
+      },
+      {
+        "name": "Cycle de vie, accès, preuves et persistance un fichier manquant ne produit ni succès ni PDF vide",
+        "status": "passed"
+      },
+      {
+        "name": "Cycle de vie, accès, preuves et persistance la TVA déclarée ne contredit pas silencieusement les paramètres centraux",
+        "status": "passed"
+      },
+      {
+        "name": "Cycle de vie, accès, preuves et persistance une ouverture SQLite concurrente partage une seule connexion",
+        "status": "passed"
+      },
+      {
+        "name": "Cycle de vie, accès, preuves et persistance date d’émission et contrôles calendaires utilisent le fuseau français",
+        "status": "passed"
+      },
+      {
+        "name": "Cycle de vie, accès, preuves et persistance numéros uniques et conflit de modification concurrente refusé",
+        "status": "passed"
+      },
+      {
+        "name": "défilement clavier — correspondance des touches (§2 mission) Flèche bas/haut : défilement progressif",
+        "status": "passed"
+      },
+      {
+        "name": "défilement clavier — correspondance des touches (§2 mission) Page Down / Page Up : un écran (90 % de la zone visible)",
+        "status": "passed"
+      },
+      {
+        "name": "défilement clavier — correspondance des touches (§2 mission) Espace : un écran vers le bas ; Maj+Espace : vers le haut",
+        "status": "passed"
+      },
+      {
+        "name": "défilement clavier — correspondance des touches (§2 mission) Home / End : extrémités de la zone active",
+        "status": "passed"
+      },
+      {
+        "name": "défilement clavier — correspondance des touches (§2 mission) Tab, Entrée et les autres touches ne sont pas interceptées",
+        "status": "passed"
+      },
+      {
+        "name": "défilement clavier — capacité et routage des zones refuse de défiler au-delà des extrémités",
+        "status": "passed"
+      },
+      {
+        "name": "défilement clavier — capacité et routage des zones zone non défilante (contenu plus petit que la vue) ignorée",
+        "status": "passed"
+      },
+      {
+        "name": "défilement clavier — capacité et routage des zones route vers la première zone capable, sinon la zone principale",
+        "status": "passed"
+      },
+      {
+        "name": "défilement clavier — capacité et routage des zones aucune zone capable : la touche n’est pas consommée (pas de blocage)",
+        "status": "passed"
+      },
+      {
+        "name": "défilement clavier — capacité et routage des zones Home/End positionnent exactement aux extrémités",
+        "status": "passed"
+      },
+      {
+        "name": "défilement clavier — protection de la saisie et de l’activation champs de saisie et éditeurs : jamais interceptés",
+        "status": "passed"
+      },
+      {
+        "name": "défilement clavier — protection de la saisie et de l’activation boutons et liens restent activables à Espace/Entrée nativement",
+        "status": "passed"
+      },
+      {
+        "name": "isolation des données de test installe un profil temporaire avant les imports et journaux de sécurité",
+        "status": "passed"
+      },
+      {
+        "name": "restauration de sauvegarde : chemins accepte un chemin relatif sain",
+        "status": "passed"
+      },
+      {
+        "name": "restauration de sauvegarde : chemins rejette ../evil.txt",
+        "status": "passed"
+      },
+      {
+        "name": "restauration de sauvegarde : chemins rejette database/../../evil.txt",
+        "status": "passed"
+      },
+      {
+        "name": "restauration de sauvegarde : chemins rejette ..\\evil.txt",
+        "status": "passed"
+      },
+      {
+        "name": "restauration de sauvegarde : chemins rejette /etc/passwd",
+        "status": "passed"
+      },
+      {
+        "name": "restauration de sauvegarde : chemins rejette C:\\evil.txt",
+        "status": "passed"
+      },
+      {
+        "name": "restauration de sauvegarde : chemins rejette a//b.txt",
+        "status": "passed"
+      },
+      {
+        "name": "restauration de sauvegarde : chemins rejette ",
+        "status": "passed"
+      },
+      {
+        "name": "garde-fou pollution de prototype (CVE-2023-30533) supprime toute propriété ajoutée à Object.prototype pendant le parsing",
+        "status": "passed"
+      },
+      {
+        "name": "garde-fou pollution de prototype (CVE-2023-30533) nettoie même en cas d’erreur du parseur",
+        "status": "passed"
+      },
+      {
+        "name": "garde-fou bombe de décompression accepte une archive raisonnable",
+        "status": "passed"
+      },
+      {
+        "name": "garde-fou bombe de décompression rejette une archive dépassant le plafond",
+        "status": "passed"
+      },
+      {
+        "name": "validation des chemins et fichiers importés rejette l’octet nul dans un chemin",
+        "status": "passed"
+      },
+      {
+        "name": "validation des chemins et fichiers importés rejette un exécutable renommé en document",
+        "status": "passed"
+      },
+      {
+        "name": "validation des chemins et fichiers importés rejette une extension exécutable",
+        "status": "passed"
+      },
+      {
+        "name": "validation des chemins et fichiers importés accepte un PDF minimal valide",
+        "status": "passed"
+      },
+      {
+        "name": "validateurs métier accepte les e-mails avec majuscules (conformes RFC)",
+        "status": "passed"
+      },
+      {
+        "name": "validateurs métier rejette les e-mails contenant une espace",
+        "status": "passed"
+      },
+      {
+        "name": "API locale : politique CORS refuse une origine web externe et accepte la boucle locale",
+        "status": "passed"
+      },
+      {
+        "name": "moteur tableur interne — CSV analyse le CSV français (point-virgule, guillemets, accents)",
+        "status": "passed"
+      },
+      {
+        "name": "moteur tableur interne — CSV aller-retour CSV sans perte",
+        "status": "passed"
+      },
+      {
+        "name": "moteur tableur interne — CSV rejette un CSV malformé (guillemet non fermé)",
+        "status": "passed"
+      },
+      {
+        "name": "moteur tableur interne — XLSX génère puis relit un classeur (texte, nombres, accents)",
+        "status": "passed"
+      },
+      {
+        "name": "moteur tableur interne — XLSX parse via le parseur applicatif et reconstruit le texte",
+        "status": "passed"
+      },
+      {
+        "name": "moteur tableur interne — XLSX convertit les dates Excel (numéro de série) en ISO",
+        "status": "passed"
+      },
+      {
+        "name": "moteur tableur interne — XLSX préserve formules et mise en forme lors du remplacement (chaînes partagées)",
+        "status": "passed"
+      },
+      {
+        "name": "moteur tableur interne — XLSX rejette explicitement le XLS binaire hérité",
+        "status": "passed"
+      },
+      {
+        "name": "moteur tableur interne — ODS lit feuilles, cellules et valeurs typées",
+        "status": "passed"
+      },
+      {
+        "name": "moteur tableur interne — ODS remplace les variables dans content.xml sans toucher au reste",
+        "status": "passed"
+      },
+      {
+        "name": "persistance locale conserve clients, profil, abonnement 99,99 € et modèle après réouverture",
+        "status": "passed"
+      },
+      {
+        "name": "persistance locale exporte et restaure une sauvegarde",
+        "status": "passed"
+      },
+      {
+        "name": "Electron window and IPC security accepts only the exact app origin",
+        "status": "passed"
+      },
+      {
+        "name": "Electron window and IPC security rejects navigation http://127.0.0.1.evil.test:4321",
+        "status": "passed"
+      },
+      {
+        "name": "Electron window and IPC security rejects navigation http://localhost.evil.test",
+        "status": "passed"
+      },
+      {
+        "name": "Electron window and IPC security rejects navigation http://127.0.0.1:4322",
+        "status": "passed"
+      },
+      {
+        "name": "Electron window and IPC security rejects navigation http://user@127.0.0.1:4321",
+        "status": "passed"
+      },
+      {
+        "name": "Electron window and IPC security rejects navigation file:///C:/Windows/system.ini",
+        "status": "passed"
+      },
+      {
+        "name": "Electron window and IPC security rejects navigation javascript:alert(1)",
+        "status": "passed"
+      },
+      {
+        "name": "Electron window and IPC security rejects navigation invalid",
+        "status": "passed"
+      },
+      {
+        "name": "Electron window and IPC security permits safe external protocol https://garageflows.example",
+        "status": "passed"
+      },
+      {
+        "name": "Electron window and IPC security permits safe external protocol http://example.test",
+        "status": "passed"
+      },
+      {
+        "name": "Electron window and IPC security permits safe external protocol mailto:contact@example.test",
+        "status": "passed"
+      },
+      {
+        "name": "Electron window and IPC security never opens an unsafe external protocol file:///C:/x.exe",
+        "status": "passed"
+      },
+      {
+        "name": "Electron window and IPC security never opens an unsafe external protocol javascript:alert(1)",
+        "status": "passed"
+      },
+      {
+        "name": "Electron window and IPC security never opens an unsafe external protocol ms-settings:privacy",
+        "status": "passed"
+      },
+      {
+        "name": "Electron window and IPC security never opens an unsafe external protocol https://user:password@example.test",
+        "status": "passed"
+      },
+      {
+        "name": "Electron window and IPC security requires the main frame and trusted origin for IPC",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks isolates release versions from inherited CI counters without changing user paths/data",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks uses package.json as the single source",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks accepts a valid table lang=1033 codepage=1200",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks accepts a valid table lang=1033 codepage=1252",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks accepts a valid table lang=1036 codepage=1252",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks accepts a valid table lang=0 codepage=1200",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks reproduces the old false negative on NSIS CP1252",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks accepts .0 notation only when numerically identical",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks rejects incorrect, absent, ambiguous or stale metadata: {\"product\":\"1.0.10\"}",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks rejects incorrect, absent, ambiguous or stale metadata: {\"product\":\"1.0.1-stale\"}",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks rejects incorrect, absent, ambiguous or stale metadata: {\"product\":\"1.0.1.99\"}",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks rejects incorrect, absent, ambiguous or stale metadata: {\"file\":\"1.0.0\"}",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks rejects incorrect, absent, ambiguous or stale metadata: {\"fixed\":\"1.0.0.0\"}",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks rejects incorrect, absent, ambiguous or stale metadata: {\"fixed\":\"1.0.1.7\"}",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks rejects incorrect, absent, ambiguous or stale metadata: {\"name\":\"Electron\"}",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks rejects incorrect, absent, ambiguous or stale metadata: {\"staleTable\":true}",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks rejects incorrect, absent, ambiguous or stale metadata: {\"noVersion\":true}",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks rejects incorrect, absent, ambiguous or stale metadata: {\"missingTranslation\":true}",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks rejects incorrect, absent, ambiguous or stale metadata: {\"missingProduct\":true}",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks rejects incorrect, absent, ambiguous or stale metadata: {\"x86\":true}",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks does not discard prerelease identity",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks preserves SemVer build identity in the product string",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks rejects invalid/unrepresentable package version 1.0",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks rejects invalid/unrepresentable package version v1.0.1",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks rejects invalid/unrepresentable package version 65536.0.0",
+        "status": "passed"
+      },
+      {
+        "name": "Windows release metadata — real PE resources, not mocks rejects invalid/unrepresentable package version 1.0.1.9",
+        "status": "passed"
+      }
+    ]
+  },
+  "checks": {
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "verifyConfig": "PASS",
+    "buildRenderer": "PASS (campagne Playwright finale)",
+    "buildElectron": "PASS",
+    "compiledProfessionalRuntime": "PASS : source fournie, 24 pages + fixture, SQLite, aperçu/original, extraction, HTTP 403/200",
+    "existingCompiledRuntime": "PASS (OCR corrompu : rejets attendus)",
+    "windowsInstalled": "PENDING : harnais étendu, pas exécuté dans ce sandbox Linux",
+    "physicalPrint": "NOT_EXECUTED",
+    "legalCertification": "NOT_CLAIMED"
+  },
+  "earlierAttempts": [
+    {
+      "name": "Première campagne complète reprise source",
+      "passed": 54,
+      "failed": 1,
+      "skipped": 1,
+      "reason": "Canvas de stress non prêt dans le délai 5 s ; scénario suivant ignoré par la série."
+    },
+    {
+      "name": "Options de navigateur single-process",
+      "result": "INTERRUPTED : contextes de navigateur fermés ; aucune preuve positive revendiquée."
+    },
+    {
+      "name": "Préparation de relance",
+      "result": "BLOCKED avant tests : ancien serveur sur 5180, ensuite arrêté."
+    }
+  ],
+  "remainingLimits": [
+    "Échec branding préexistant : icônes build/ préservées, assertion inchangée.",
+    "Nouveau test Windows/installation/réinstallation à confirmer ; succès historique antérieur à ces modifications uniquement.",
+    "Facturation, transactions, e-mail et signature électronique non connectés.",
+    "Signature manuscrite attestée localement : authenticité non vérifiée, jamais avancée/qualifiée.",
+    "Revue juridique/technique des dispositions, prestations effectives et annexes requise.",
+    "Glyphes hors Helvetica/WinAnsi refusés sans suppression ; pas de gestion structurée des pouvoirs multireprésentants.",
+    "Rollback complet mémoire SQL.js après panne disque non revendiqué/testé."
+  ],
+  "files": {
+    ".gitattributes": {
+      "bytes": 229,
+      "sha256": "1e26615b1f90b50f416a445d4deb0c142e05ee2ebcc900f36e6c29a04b36d64f"
+    },
+    ".github/workflows/windows-distribution.yml": {
+      "bytes": 4012,
+      "sha256": "3688366385be06c1dbc1d712b2bb44bce2af5826645748bad5d52249b3072aff"
+    },
+    "captures/professional/contract-synthetic-test.pdf": {
+      "bytes": 270624,
+      "sha256": "0458847a46f3ab08c9f4af0d7e486b35bdcdfdab34dac7da64e7eb5bdfdbf111"
+    },
+    "captures/professional/history-synthetic.png": {
+      "bytes": 296126,
+      "sha256": "0fbc60cef97d57febcfc27c704301350b8157aaec197d1813de7dd8b2d222449"
+    },
+    "captures/professional/modele-fourni-specimen.pdf": {
+      "bytes": 324129,
+      "sha256": "f2ec23897f3d4146ed7fc10eda5bce6658a6b2fb55dbb4863dbdadb468b4aef5"
+    },
+    "captures/professional/pdf-cover-synthetic.png": {
+      "bytes": 106010,
+      "sha256": "e5903f2678a57b6fa4ae47ace2105270951cbd6994a952f2bf69f4663a1d84b9"
+    },
+    "captures/professional/pdf-page-03-synthetic.png": {
+      "bytes": 176160,
+      "sha256": "4d1d6a51fda6b298450ce3481e20155f9c2e58b2ebc8d736af18efba144b9290"
+    },
+    "captures/professional/pdf-page-04-synthetic.png": {
+      "bytes": 166071,
+      "sha256": "6ea8155ca4af7f624a50f928eaea217480e1b4e2cf3d5a00df72a54f1b82f5e0"
+    },
+    "captures/professional/pdf-page-05-synthetic.png": {
+      "bytes": 166506,
+      "sha256": "0c0401344551ac921de7dec4d079e9be14246665e19887c2d16c6b01b3dde142"
+    },
+    "captures/professional/pdf-page-06-synthetic.png": {
+      "bytes": 81429,
+      "sha256": "8f7b94cc3c716d6a0fe9c5a8aba9a6b84bb24c326dd7aa1887593b942740ee51"
+    },
+    "captures/professional/pdf-page-07-synthetic.png": {
+      "bytes": 142957,
+      "sha256": "fd77d7e82091f61772e4a79270cdd648ed36f0bed16e7c8280dfa0498841d48a"
+    },
+    "captures/professional/pdf-page-08-synthetic.png": {
+      "bytes": 95768,
+      "sha256": "1c96c14e478cea6579122240ebd95ca3e70e98780d00b7ae45216e50eb065918"
+    },
+    "captures/professional/pdf-page-09-synthetic.png": {
+      "bytes": 70494,
+      "sha256": "080ed5415848cea2ca4b089497e296fb61b1552b93db9c60944300996afd6afd"
+    },
+    "captures/professional/pdf-page-10-synthetic.png": {
+      "bytes": 92452,
+      "sha256": "708ef9ff8aa7c68029d38d02a4e32847db3050e17b322da7ad5cf9a88f443a83"
+    },
+    "captures/professional/pdf-parties-synthetic.png": {
+      "bytes": 152499,
+      "sha256": "4109cd1febfb66c9929472938c2aee996d43e377651d5e289a2223be1ac74793"
+    },
+    "captures/professional/pdf-source-page-01.png": {
+      "bytes": 106922,
+      "sha256": "3a1e306e20216e5a6bcde836e0a348f8fe1d4175a534bc0de029ebc1bdd79613"
+    },
+    "captures/professional/pdf-source-page-02.png": {
+      "bytes": 154897,
+      "sha256": "50667be02eccdc8899e59934d7ef130c523e5d039cbd93838c162d67f0ebe060"
+    },
+    "captures/professional/pdf-source-page-03.png": {
+      "bytes": 155967,
+      "sha256": "08bef050cf3074fa73accb652664e300da6ca0e7c835f4569d7850db08f77eb1"
+    },
+    "captures/professional/pdf-source-page-04.png": {
+      "bytes": 171674,
+      "sha256": "4a31dbbffb52843a3af4633409f0f170a311c48538acf1fbcdb38481c22ea0c2"
+    },
+    "captures/professional/pdf-source-page-05.png": {
+      "bytes": 167908,
+      "sha256": "f44e8f7ca6a05fe8511938caba943d14b1cad7135f0b851eab3aa5da5069ab29"
+    },
+    "captures/professional/pdf-source-page-06.png": {
+      "bytes": 161116,
+      "sha256": "5a7428b7fedb1c200edd0429fd1c2dee243894661b8b1ede904a82246d8f1453"
+    },
+    "captures/professional/pdf-source-page-07.png": {
+      "bytes": 174995,
+      "sha256": "eb9f15da134e7e6d898ae14cf5f65dddfb467621fde5a5c5a3c714b0c73f4df0"
+    },
+    "captures/professional/pdf-source-page-08.png": {
+      "bytes": 175470,
+      "sha256": "0ff5ee71c31118a4dffcf20185994ae9d54704afc01b1050c752e4e78eabdf91"
+    },
+    "captures/professional/pdf-source-page-09.png": {
+      "bytes": 181451,
+      "sha256": "e51a6de66140ea4259724d4a139b8a847b2da4e39a0fab9b27e18721f59634bf"
+    },
+    "captures/professional/pdf-source-page-10.png": {
+      "bytes": 153993,
+      "sha256": "f1cdfa1901f58e2ee6e1558f370ba912400343c29b434cec9e128980b1933626"
+    },
+    "captures/professional/pdf-source-page-11.png": {
+      "bytes": 179294,
+      "sha256": "c9773a56c8230c933751e6a9300e048430fa615c2b88f25df84523b60966bd46"
+    },
+    "captures/professional/pdf-source-page-12.png": {
+      "bytes": 178313,
+      "sha256": "b82c73762ab64c78de9fa1695ebb0c844c39c2e50ef3033014d72e83d790cd5e"
+    },
+    "captures/professional/pdf-source-page-13.png": {
+      "bytes": 183784,
+      "sha256": "81044b59090192048fe11dd02dd1d9ebce1f459e471e4ba906b3502429aa05a0"
+    },
+    "captures/professional/pdf-source-page-14.png": {
+      "bytes": 193823,
+      "sha256": "f1229038c71d07d13a5189dd70e0c377846b93523055cc74b6432f499a1aca22"
+    },
+    "captures/professional/pdf-source-page-15.png": {
+      "bytes": 182719,
+      "sha256": "6e952dc2f29f124b67b9b34b33a80c09ddd8552c98bba8a27d77177b748eff14"
+    },
+    "captures/professional/pdf-source-page-16.png": {
+      "bytes": 158179,
+      "sha256": "7b8cafc90aa1719677c5387d7c6460672cd447389a8fc93d4df1fc43b06f7452"
+    },
+    "captures/professional/pdf-source-page-17.png": {
+      "bytes": 93299,
+      "sha256": "ceeb597736dbf29bac15a54d92960c54fe84146ece19b0e7f1877cb5651a360b"
+    },
+    "captures/professional/pdf-source-page-18.png": {
+      "bytes": 149558,
+      "sha256": "6d7f1195906141854b9703ad5631308e3f61b6798bfffcb4ac6431d5d8f142d4"
+    },
+    "captures/professional/pdf-source-page-19.png": {
+      "bytes": 145576,
+      "sha256": "3979c26750e9b23f0128183a12c0e94ce4653439c74bd42f5d164339e1cb16f1"
+    },
+    "captures/professional/pdf-source-page-20.png": {
+      "bytes": 170993,
+      "sha256": "934db8d17b39de2fb4a41bb20d02eeab4698e3b93f7810cb0bd290da81021fa6"
+    },
+    "captures/professional/pdf-source-page-21.png": {
+      "bytes": 154288,
+      "sha256": "39f5ba3cc14b5d357086f1d93be7bc53783175a8b0aa6cf260c89b50cb8a2afd"
+    },
+    "captures/professional/pdf-source-page-22.png": {
+      "bytes": 149261,
+      "sha256": "c36fed6f674fac53c71ab0c2694fde3984b6c1dfca1beec510afd0fd092c785c"
+    },
+    "captures/professional/pdf-source-page-23.png": {
+      "bytes": 86758,
+      "sha256": "96550e0336fc537d7182640890b0c58d7d7c1843426c9bc9dc0aad50c3a341ce"
+    },
+    "captures/professional/pdf-source-page-24.png": {
+      "bytes": 114374,
+      "sha256": "8d98619b12583db24663f405cc73675a40290b90adbb6a861da6a282578f86bd"
+    },
+    "captures/professional/source-pages.json": {
+      "bytes": 952,
+      "sha256": "c2bc76fa0e42dcd708b2f834e7d97b8f7af84a3e6b6ec28a4315936986e5be20"
+    },
+    "captures/professional/source-vue-ensemble.png": {
+      "bytes": 386780,
+      "sha256": "0c5be8f9c8010fe59e9901ceaa2c7b723c71668594d79f3c155d0938072a1c3d"
+    },
+    "captures/professional/stress-cover-synthetic.png": {
+      "bytes": 119447,
+      "sha256": "1773d8170386da10f99d469a8a326973ae56e57bd209390300c85677fb6c4f27"
+    },
+    "captures/professional/stress-page-22-synthetic.png": {
+      "bytes": 283012,
+      "sha256": "31ddaa1000b4c10c723f727bf0007b2fac507cbe5f9a1c42810c78b8b5d1aed4"
+    },
+    "captures/professional/stress-page-23-synthetic.png": {
+      "bytes": 260042,
+      "sha256": "77038a0639972484857151c31b6357c2b0e779ea717ce7823b5cc5bbd6a6163f"
+    },
+    "captures/professional/stress-page-24-synthetic.png": {
+      "bytes": 112663,
+      "sha256": "bdcd552cb6fc2b3fd126d1e5face617fa22c3cd8a3f2742619da2eb1f95fc19a"
+    },
+    "captures/professional/stress-page-25-synthetic.png": {
+      "bytes": 112687,
+      "sha256": "a012d69b99c11b708c2a94f6163810bd83314855a25dfd53fff2f894cfcc1696"
+    },
+    "captures/professional/stress-page-3-synthetic.png": {
+      "bytes": 227550,
+      "sha256": "e99c2f5b23d61dd14d7bf269c5bcc2ca7728a43b00d92de194ede4850291cc99"
+    },
+    "captures/professional/stress-synthetic-test.pdf": {
+      "bytes": 316593,
+      "sha256": "cfe407ecd080eb7fae3db038c2ec55c82fa49dab737aafd72ce82266209e5fc0"
+    },
+    "captures/professional/wizard-generated-synthetic.png": {
+      "bytes": 257345,
+      "sha256": "6aaabe9751fb63a80200b0feed0e688771367380a5309fb977e8c7322725d8c9"
+    },
+    "captures/professional/wizard-source-original.png": {
+      "bytes": 251661,
+      "sha256": "0734ae105c91b49a9f2f949f71907d08c0b339c4581336b2fb16557e799bbaef"
+    },
+    "core/contracts/bundled-model.ts": {
+      "bytes": 2080,
+      "sha256": "66f7c1e2d78d4afa5c6614c8cb1a8c438de15bdb93123997848f1f4b62eafeae"
+    },
+    "core/contracts/context.ts": {
+      "bytes": 15960,
+      "sha256": "8a9e938002d96f3647d991d7150ea6372057af899e29bc5e2037be6c0ca6be7b"
+    },
+    "core/contracts/integrations.ts": {
+      "bytes": 1480,
+      "sha256": "eca483539376834f29c4f63a2208cd2fd386734c1ea6367949ec7b33d9c12df8"
+    },
+    "core/contracts/pdf.ts": {
+      "bytes": 14251,
+      "sha256": "88ff152489c3dc4f9c8868aa3c564f946976b89f589436f01b1ccf852c3bc151"
+    },
+    "core/contracts/types.ts": {
+      "bytes": 6165,
+      "sha256": "2e003fc85cb0502563fa73647bb6451bbcfc81def160a4cf9af38ba9bace1ad4"
+    },
+    "core/contracts/variables.ts": {
+      "bytes": 3039,
+      "sha256": "29172d623c05510d1a954194d1c8141955d124a2392b686fff6a891d854d11fe"
+    },
+    "core/document-exporter/exporter.ts": {
+      "bytes": 4626,
+      "sha256": "42f80c98f3acf0dcbe8faedb493fadcebc7876a3fd455ce24f9398877a2d1d6d"
+    },
+    "core/types.ts": {
+      "bytes": 8558,
+      "sha256": "5f1afc80c7d68606a4aeec5d664ff6d45f69304e5d0c48a5549fd00d0abb8cf7"
+    },
+    "e2e/professional-contract.spec.ts": {
+      "bytes": 16873,
+      "sha256": "bfd38b5799991137146ca60c2245c4c91f46eb1dfde3d3ba552bc87e7182727f"
+    },
+    "electron-builder.yml": {
+      "bytes": 1698,
+      "sha256": "b850cece3fd1639c7888ca5a3f26331c351e13f0dfbd7108edb6ba9fe2ca46eb"
+    },
+    "electron/electron-shim.d.ts": {
+      "bytes": 3443,
+      "sha256": "20bbafccced545138c233e48011724b3824078a061eedc4acc6d210157b96c36"
+    },
+    "electron/main.ts": {
+      "bytes": 6915,
+      "sha256": "16859da43c406f08c1e2a7d945de81de826aed8e905fbb423f2bf14e7be52bd7"
+    },
+    "electron/professional-routes.ts": {
+      "bytes": 4251,
+      "sha256": "7872d050719ab687d0d10a46ed4609e8651d7d08dca764642f53bffad51bd1ff"
+    },
+    "electron/security/local-access.ts": {
+      "bytes": 1222,
+      "sha256": "7fe76f9904676cca2f0053d114d155bc3b6013386c0ba9519c0a61065b11b6a0"
+    },
+    "electron/server.ts": {
+      "bytes": 12272,
+      "sha256": "0ec8652704bff1e3b654c5c7f3488f396674f25add44249b3ea301fcd20bf641"
+    },
+    "electron/services/professional-contract-service.ts": {
+      "bytes": 20732,
+      "sha256": "b8c214e2b7f4496ddc39a991f339c3fec52e15b66df7cc89954584a6423afe57"
+    },
+    "package-lock.json": {
+      "bytes": 333152,
+      "sha256": "776701affb0ba2b44ccfbf171b44904146cbdc7c0bc8581b542e8472a844ad90"
+    },
+    "package.json": {
+      "bytes": 2662,
+      "sha256": "34c0719ddad3676a7c9e8c658464f9fb3fd460b56c9ddb92dfcb85a689f86335"
+    },
+    "playwright.config.ts": {
+      "bytes": 901,
+      "sha256": "c0ee6424eaf30817f7850bf86f495d500ea4a26ddbac7fcf9cc52f066fc0f5c5"
+    },
+    "public/branding/wordmark.png": {
+      "bytes": 252588,
+      "sha256": "94e5c706fa63e054b4bd227c397b4cd7a19c0ea55bdeb61fe618ff0ae641fc6b"
+    },
+    "resources/branding/logo-official.png": {
+      "bytes": 1490720,
+      "sha256": "8ec4b44173f32407a4adb7a6de2df1b4e99699a68f0c93fbb35307b8b920cd21"
+    },
+    "resources/contracts/garageflows-professional-v1.0-2026-10-22.json": {
+      "bytes": 2754,
+      "sha256": "f3cd7baef40c779557c0d86c78c240fd01ddb19b68106cd019b7ec38e25d2f7b"
+    },
+    "resources/contracts/garageflows-professional-v1.0-2026-10-22.md": {
+      "bytes": 38275,
+      "sha256": "82ff73ad47b495a9091ac9b82d3cd1ddba2305c6f2d3cf60b4f4431aa94dcf5c"
+    },
+    "scripts/dev.mjs": {
+      "bytes": 562,
+      "sha256": "6ec29038715d00828365e6481fc19527d10539faa660e47e48acb771d047c27a"
+    },
+    "scripts/test-professional-runtime.cjs": {
+      "bytes": 5591,
+      "sha256": "f72cba1efb89db96a2c7f3c6e31393295f1705b36d814a7a7b27dea3391b2eea"
+    },
+    "scripts/test-windows-installer.mjs": {
+      "bytes": 21996,
+      "sha256": "586264193b1eb2e88b87b45aa02e9ed564f39c236ac53bda12af62f054a1f6b8"
+    },
+    "src/ActualPdfPreview.tsx": {
+      "bytes": 4877,
+      "sha256": "2dbda6494f0bbd96eb92d5d8ee5221f72c077eec3b4516b8b662f46585f2bc54"
+    },
+    "src/App.tsx": {
+      "bytes": 13161,
+      "sha256": "c4fe38b8f2b6d72f647e7a629955d9212e598a9904e4b6668496b695c9d6171d"
+    },
+    "src/ProfessionalContractHistory.tsx": {
+      "bytes": 9767,
+      "sha256": "06a3b9113eaceb29d439e655aac0b552863457d3ec05e5403a8d54f27daca167"
+    },
+    "src/ProfessionalModelSetup.tsx": {
+      "bytes": 4854,
+      "sha256": "84d732d751958af27f99c1b2050e0e8d9e3a1dfe828acfbe5b82022e69d164d1"
+    },
+    "src/api.ts": {
+      "bytes": 9071,
+      "sha256": "223b5e1f0a53d746511ee2c56cf21787dee3c48735722701bb136b36be3773e6"
+    },
+    "src/pages/ClientsPage.tsx": {
+      "bytes": 12295,
+      "sha256": "3f01a0bb9f19d0fb564ca0e78a921f95c5fc926e290a61dac6a1882f3a5d95d6"
+    },
+    "src/pages/GeneratorPage.tsx": {
+      "bytes": 17854,
+      "sha256": "fb1f91481479434534de8f7d8ddbbc75f4f200cac62c74583ce7f3e41df056fe"
+    },
+    "src/pages/HistoryPage.tsx": {
+      "bytes": 3937,
+      "sha256": "440c8bc02dcb5e24fa95a575c474750a1be060b66596abc054b57a8e232c435b"
+    },
+    "src/pages/ProfessionalContractWizard.tsx": {
+      "bytes": 12534,
+      "sha256": "3567f61ff574b544a1f197d58acb9a666e404a9f79538089e1d8e03ee982dfb4"
+    },
+    "src/pages/ProfilePage.tsx": {
+      "bytes": 10002,
+      "sha256": "f97d9898ad0257db7e1e0b945c16693604c1afa7925805943b4790f759e0e4e0"
+    },
+    "src/professional-api.ts": {
+      "bytes": 2631,
+      "sha256": "f574fe798d7cda9baa44077030bdff5fedfb1294a307ae8c57bfef2f3281d35c"
+    },
+    "src/styles/global.css": {
+      "bytes": 27370,
+      "sha256": "5331627e87f86011a86e1d02dd0bd31f348ce0a3c177238e690488cc13dc1758"
+    },
+    "storage/database/sqlite-db.ts": {
+      "bytes": 4947,
+      "sha256": "64821f65bd736fd0046ff7889e5575b14e120b27b2909c7869689e140f216c59"
+    },
+    "storage/repositories/client-repo.ts": {
+      "bytes": 6489,
+      "sha256": "cfe07ac8b9b1f1c427172456c063ec5cf82a5d952441d333689a01dfc5315d2e"
+    },
+    "storage/repositories/contract-repo.ts": {
+      "bytes": 5522,
+      "sha256": "a78bd34abdacead92a56300420545bcb9740e4e72f89812040a8b804b0dd4eec"
+    },
+    "storage/repositories/professional-contract-repo.ts": {
+      "bytes": 5172,
+      "sha256": "cecd269fcd16911b0eadb2893e76a2ed4de7e438a5b9f509a15471f9a0f800f7"
+    },
+    "storage/repositories/profile-repo.ts": {
+      "bytes": 5934,
+      "sha256": "4acae17662c6678402958d56310d533c2b13e73073c076f38f81da2608cd1c34"
+    },
+    "tests/bundled-professional-contract.test.ts": {
+      "bytes": 12528,
+      "sha256": "4fba0a97ef6c843cc4652e092d338c3682725114083f1c266e21b4f03f3e30f5"
+    },
+    "tests/fixtures/professional-contract.ts": {
+      "bytes": 3022,
+      "sha256": "27837635d291b6fa7bf2e2c231eb105f96a6ad4263ebd7b89c061a024102d8fa"
+    },
+    "tests/professional-contract.test.ts": {
+      "bytes": 20738,
+      "sha256": "40e6e5e82bad43d6518c14294248cd06b70cddbde3d744797ee06883a21bb586"
+    },
+    "vite.config.ts": {
+      "bytes": 668,
+      "sha256": "623ffb9debe3167ef17b384765fa960f255f5d3fb415a4974698cf6385d9f332"
+    }
+  }
+}

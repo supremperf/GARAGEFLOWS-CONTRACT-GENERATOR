@@ -1,3 +1,4 @@
+import ProfessionalContractHistory from '../ProfessionalContractHistory';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { api, type ClientRecord, type GeneratedContractRecord } from '../api';
 
@@ -11,7 +12,7 @@ const EMPTY: ClientFormState = {
 
 type ClientFormState = Omit<ClientRecord, 'id' | 'createdAt' | 'updatedAt' | 'signatureClient'> & { id?: string; signatureClient?: string };
 
-export default function ClientsPage({ notify }: { notify: (m: string) => void }) {
+export default function ClientsPage({ notify, onGenerateContract, onResumeContract }: { notify: (m: string) => void; onGenerateContract?: (id: string) => void; onResumeContract?: (id: string) => void }) {
   const [items, setItems] = useState<ClientRecord[]>([]);
   const [query, setQuery] = useState('');
   const [form, setForm] = useState<ClientFormState>(EMPTY);
@@ -154,11 +155,13 @@ export default function ClientsPage({ notify }: { notify: (m: string) => void })
             <p>{client.entreprise || 'Particulier'} · {client.ville || 'Ville non renseignée'} · {client.email || 'sans e-mail'}</p>
             <div className="row" style={{ marginTop: 8 }}>
               <button className="btn-ghost" disabled={saving} onClick={() => { setForm(client); setError(''); setCustomError(''); setCustomKey(''); setCustomValue(''); api.clientContracts(client.id).then(setHistory).catch((e: Error) => notify(e.message)); }}>Ouvrir</button>
+              {onGenerateContract && <button className="btn-ghost" disabled={saving} onClick={() => onGenerateContract(client.id)}>Générer un contrat</button>}
               <button className="btn-danger" disabled={saving} onClick={() => { if (confirm(`Supprimer ${client.prenom} ${client.nom} ?`)) api.deleteClient(client.id).then(() => load()); }}>Supprimer</button>
             </div>
           </article>
         ))}
       </section>
+      {form.id && <div className="pro-client-history"><ProfessionalContractHistory key={form.id} clientId={form.id} onResume={onResumeContract} /></div>}
     </div>
   );
 }

@@ -1,10 +1,12 @@
 import path from 'path';
+import { randomBytes } from 'crypto';
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import { startServer } from './server';
 import { isTrustedWindowUrl, isSafeExternalUrl, assertTrustedIpcSender } from './security/window-policy';
 import { validateSafeFilePath } from './security/path-validator';
 import { writeAppLog } from './security/logger';
 
+const localCapability = randomBytes(32).toString('hex');
 const isDev = process.env.GARAGEFLOWS_DEV === '1';
 // Packaged assets are outside ASAR; development resolves relative to compiled main.
 const brandingDir = app.isPackaged
@@ -35,6 +37,13 @@ function createWindow(port: number) {
   });
 
   const url = isDev ? 'http://127.0.0.1:5173' : `http://127.0.0.1:${port}`;
+  win.webContents.session.webRequest.onBeforeSendHeaders((details: { url: string; webContentsId?: number; requestHeaders: Record<string, string> }, callback: (response: { requestHeaders: Record<string, string> }) => void) => {
+    const target = new URL(details.url);
+    if (details.webContentsId === win.webContents.id && target.origin === url && target.pathname.startsWith('/api/')) {
+      details.requestHeaders['X-GF-Local-Capability'] = localCapability;
+    }
+    callback({ requestHeaders: details.requestHeaders });
+  });
   win.once('ready-to-show', () => {
     win.show();
     splash?.close();
@@ -58,7 +67,9 @@ function createWindow(port: number) {
   return win;
 }
 
-app.whenReady().then(async () => {
+const primaryInstance = app.requestSingleInstanceLock();
+if (!primaryInstance) app.quit();
+if (primaryInstance) app.whenReady().then(async () => {
   splash = new BrowserWindow({
     width: 520, height: 430, frame: false, resizable: false,
     title: 'GarageFlows Contract Generator', icon: windowIcon,
@@ -92,6 +103,8 @@ app.whenReady().then(async () => {
   const staticDir = path.join(__dirname, '../../dist-renderer');
   const port = await startServer({
     port: 0,
+    localCapability,
+    allowedOrigins: isDev ? ['http://127.0.0.1:5173'] : [],
     staticDir: isDev ? undefined : staticDir,
     electronDialogs: {
       openFile: (filters) =>

@@ -1,3 +1,4 @@
+import ProfessionalModelSetup from '../ProfessionalModelSetup';
 import FilePicker from '../FilePicker';
 import { useEffect, useRef, useState } from 'react';
 import { api, fileToBase64, type CustomVariableDefinition, type ProfessionalProfile, type SubscriptionConfig } from '../api';
@@ -45,6 +46,7 @@ export default function ProfilePage({ notify }: { notify: (m: string) => void })
     <div className="stack">
       <section className="card stack">
         <h3>Identité et entreprise</h3>
+        <label className="field">Régime fiscal déclaré (contrat professionnel)<select value={profile.tvaRegime || ''} onChange={e => setP('tvaRegime', e.target.value)}><option value="">Non renseigné</option><option value="vat">TVA applicable</option><option value="franchise">Franchise — article 293 B du CGI</option></select></label>
         <p className="help">Ces informations sont réutilisées dans tous les contrats. Aucune donnée d’entreprise n’est inventée : laissez vide ce que vous n’avez pas encore renseigné.</p>
         <div className="grid-3">
           {([
@@ -129,6 +131,7 @@ export default function ProfilePage({ notify }: { notify: (m: string) => void })
         <button className="btn-ghost" onClick={() => setCustoms([...customs, { key: 'CLIENT_CODE_CLIENT', label: 'Code client', category: 'personnalise', dataType: 'text', defaultValue: '', required: false, synonyms: [], description: '' }])}>Ajouter une variable</button>
         <button className="btn" onClick={() => api.saveCustomVariables(customs).then((saved) => { setCustoms(saved); notify('Dictionnaire personnalisé enregistré.'); }).catch((e: Error) => notify(e.message))}>Enregistrer le dictionnaire</button>
       </section>
+      <ProfessionalModelSetup />
     </div>
   );
 }

@@ -230,3 +230,25 @@ button, a, input, select, textarea { scroll-margin: 12px; }
 
 /* Preserve the existing client-card layout while grouping pending form controls. */
 .client-fields { border: 0; margin: 0; padding: 0; min-width: 0; }
+
+/* Professional contracts extend the existing dark cards without replacing client forms. */
+.pro-contract { min-width: 0; }
+.pro-contract .row { flex-wrap: wrap; }
+.pro-contract h3, .pro-contract h4 { overflow-wrap: anywhere; }
+.pro-contract textarea { min-height: 150px; }
+.pro-contract .pro-source { min-height: 260px; font-family: ui-monospace, monospace; font-size: 12px; }
+.pro-contract details > summary { cursor: pointer; padding: 10px 0; font-weight: 600; }
+.pro-hash { overflow-wrap: anywhere; font-family: ui-monospace, monospace; line-height: 1.7; }
+.pro-check { display: flex; gap: 12px; align-items: flex-start; line-height: 1.6; }
+.pro-check input[type=checkbox] { width: 18px; height: 18px; flex: 0 0 18px; margin-top: 4px; accent-color: var(--accent, #17c6ed); }
+.pro-steps { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
+.pro-steps li { padding: 10px; background: #0c172b; border: 1px solid #243851; border-radius: 8px; font-size: 12px; }
+.pro-steps .current { border-color: #25bed9; color: #6ce4fb; }
+.pro-detail { border-top: 1px solid #243851; padding-top: 18px; }
+.pro-events { display: grid; gap: 16px; padding-left: 24px; }
+.pro-events li { overflow-wrap: anywhere; line-height: 1.7; }
+.pro-client-history { grid-column: 1 / -1; }
+.actual-pdf { padding: 16px; background: #101828; border-radius: 12px; }
+.actual-pdf canvas { display: block; width: 100%; max-width: 794px; height: auto; margin: 0 auto; background: white; }
+.pdf-print-frame { position: fixed; width: 1px; height: 1px; right: 0; bottom: 0; border: 0; }
+@media(max-width: 800px) { .pro-steps { grid-template-columns: repeat(2,minmax(0,1fr)); } }

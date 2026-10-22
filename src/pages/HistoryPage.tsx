@@ -1,15 +1,17 @@
+import ProfessionalContractHistory from '../ProfessionalContractHistory';
 import Modal from '../Modal';
 import { useEffect, useState } from 'react';
 import { api, downloadUrl, type GeneratedContractRecord } from '../api';
 
-export default function HistoryPage({ notify }: { notify: (m: string) => void }) {
+export default function HistoryPage({ notify, onResumeContract }: { notify: (m: string) => void; onResumeContract?: (id: string) => void }) {
   const [items, setItems] = useState<GeneratedContractRecord[]>([]);
   const [open, setOpen] = useState<GeneratedContractRecord | null>(null);
-  const load = () => api.contracts().then(setItems).catch((e: Error) => notify(e.message));
+  const load = () => api.contracts().then(items => setItems(items.filter(item => !item.professionalContractId))).catch((e: Error) => notify(e.message));
   useEffect(() => { load(); }, []);
 
   return (
     <div className="stack">
+      <ProfessionalContractHistory onResume={onResumeContract} />
       <section className="card">
         {items.length === 0 ? <div className="empty">Aucun contrat dans l’historique local.</div> : (
           <div className="table-wrap" tabIndex={0} role="region" aria-label="Historique des contrats">

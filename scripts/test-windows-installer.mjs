@@ -55,7 +55,7 @@ try {
   assert.equal(await page.evaluate(() => window.garageflows?.isElectron), true, 'Installed sandboxed preload bridge missing');
   stage('installed Electron window, renderer, sandboxed preload and official logo');
   report.runtime = await electronApp.evaluate(async ({ app }) => {
-    const require = (await import('node:module')).createRequire(`${app.getAppPath()}/package.json`);
+    const require = process.mainModule.require('node:module').createRequire(`${app.getAppPath()}/package.json`);
     const path = require('node:path');
     const fs = require('node:fs');
     const { createCanvas } = require('canvas');
@@ -124,7 +124,7 @@ try {
   run(installer, ['/S', `/D=${destination}`]);
   await launch();
   const retained = await electronApp.evaluate(async ({ app }) => {
-    const require = (await import('node:module')).createRequire(`${app.getAppPath()}/package.json`);
+    const require = process.mainModule.require('node:module').createRequire(`${app.getAppPath()}/package.json`);
     const clients = await require(`${app.getAppPath()}/dist-electron/storage/repositories/client-repo.js`).listClients();
     const templates = await require(`${app.getAppPath()}/dist-electron/storage/repositories/template-repo.js`).listTemplates();
     const profile = await require(`${app.getAppPath()}/dist-electron/storage/repositories/profile-repo.js`).getProfessionalProfile();

@@ -133,9 +133,12 @@ try {
   assert.equal(report.runtime.appVersion, policy.appVersion);
   assert.equal(report.runtime.electron, policy.config.electronVersion);
   stage('packaged x64 canvas native binding/DLL, real offline OCR, ESM PDF.js, SQLite/WASM, imported DOCX and generated contract without Node/npm on PATH');
-  const escapedExe = executablePath.replaceAll("'", "''");
-  const shortcuts = powershell(`$shell=New-Object -ComObject WScript.Shell; @(Get-ChildItem ([Environment]::GetFolderPath('Desktop')),([Environment]::GetFolderPath('Programs')) -Filter '*GarageFlows*.lnk' -Recurse | Where-Object { $shell.CreateShortcut($_.FullName).TargetPath -eq '${escapedExe}' }).Count`);
-  assert.ok(Number(shortcuts) >= 2, `Desktop/Start Menu shortcuts missing: ${shortcuts}`);
+  const shortcutTargets = JSON.parse(powershell("$shell=New-Object -ComObject WScript.Shell; ConvertTo-Json -Compress -InputObject @(Get-ChildItem ([Environment]::GetFolderPath('Desktop')),([Environment]::GetFolderPath('Programs')) -Filter '*GarageFlows*.lnk' -Recurse | ForEach-Object { $shell.CreateShortcut($_.FullName).TargetPath })"));
+  assert.ok(Array.isArray(shortcutTargets), 'Shortcut inspection must return an array');
+  // Shell links can expand RUNNER~1 to runneradmin: compare real file identity, not display spelling.
+  const canonicalExecutable = fs.realpathSync.native(executablePath).toLowerCase();
+  const shortcuts = shortcutTargets.filter(target => typeof target === 'string' && fs.existsSync(target) && fs.realpathSync.native(target).toLowerCase() === canonicalExecutable);
+  assert.ok(shortcuts.length >= 2, `Desktop/Start Menu shortcuts missing or point elsewhere: ${JSON.stringify(shortcutTargets)}`);
   stage('installed desktop and Start Menu shortcut targets');
   await closeInstalledApp();
   const before = snapshot();

@@ -75,8 +75,8 @@ export default function ProfilePage({ notify }: { notify: (m: string) => void })
           className="sig-canvas"
           width={900}
           height={220}
-          onPointerDown={(e) => { drawing.current = true; const p = pointer(e); const ctx = canvasRef.current?.getContext('2d'); if (p && ctx) ctx.beginPath(), ctx.moveTo(p.x, p.y); }}
-          onPointerMove={(e) => { if (!drawing.current) return; const p = pointer(e); const ctx = canvasRef.current?.getContext('2d'); if (p && ctx) ctx.lineTo(p.x, p.y), ctx.stroke(); }}
+          onPointerDown={(e) => { drawing.current = true; const p = pointer(e); const ctx = canvasRef.current?.getContext('2d'); if (p && ctx) { ctx.beginPath(); ctx.moveTo(p.x, p.y); } }}
+          onPointerMove={(e) => { if (!drawing.current) return; const p = pointer(e); const ctx = canvasRef.current?.getContext('2d'); if (p && ctx) { ctx.lineTo(p.x, p.y); ctx.stroke(); } }}
           onPointerUp={() => { drawing.current = false; }}
         />
         <div className="row">

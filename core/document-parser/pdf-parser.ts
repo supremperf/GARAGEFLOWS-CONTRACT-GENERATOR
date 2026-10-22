@@ -96,9 +96,8 @@ export async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<
 
   // 2. Extraction positionnelle haute précision via pdfjs-dist
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     ensurePdfJsPolyfills();
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- interop CJS requis pour pdfjs-dist legacy (Electron/Node)
     const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
     if (pdfjsLib.GlobalWorkerOptions) {
       pdfjsLib.GlobalWorkerOptions.workerSrc = '';
@@ -245,7 +244,7 @@ export async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<
 
   // 4. Détection de PDF scanné (aucun texte vectoriel ou moins de 15 caractères)
   const totalExtractedChars = paragraphs.reduce((acc, p) => acc + p.text.length, 0) + headers.join('').length;
-  let isScanned = totalExtractedChars < 15 && pdfFormFields.length === 0;
+  const isScanned = totalExtractedChars < 15 && pdfFormFields.length === 0;
   let ocrApplied = false;
   let ocrConfidence: number | undefined;
 

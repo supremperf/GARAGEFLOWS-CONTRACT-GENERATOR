@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { assertZipWithinLimits, withPrototypePollutionGuard } from './guards';
 import JSZip from 'jszip';
 import { DocumentParagraph, DocumentTable, SpreadsheetCell, SpreadsheetSheet } from '../types';
 
@@ -23,6 +24,7 @@ export async function parseSpreadsheetBuffer(
   if (format === 'xlsx') {
     try {
       const zip = await JSZip.loadAsync(buffer);
+      assertZipWithinLimits(zip, 'Classeur XLSX');
       const media = Object.keys(zip.files).filter((f) => f.startsWith('xl/media/') && !zip.files[f].dir);
       hasImages = media.length > 0;
       imageCount = media.length;
@@ -31,10 +33,11 @@ export async function parseSpreadsheetBuffer(
     }
   }
 
-  const workbook =
+  const workbook = withPrototypePollutionGuard(() =>
     format === 'csv'
       ? XLSX.read(buffer.toString('utf8'), { type: 'string', cellFormula: true, cellStyles: true })
-      : XLSX.read(buffer, { type: 'buffer', cellFormula: true, cellStyles: true });
+      : XLSX.read(buffer, { type: 'buffer', cellFormula: true, cellStyles: true })
+  );
 
   const sheets: SpreadsheetSheet[] = [];
   const tables: DocumentTable[] = [];

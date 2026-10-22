@@ -136,6 +136,7 @@ function writeScannedPng() {
       raw[i] = 245; raw[i + 1] = 245; raw[i + 2] = 242; raw[i + 3] = 255;
     }
   }
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- import paresseux volontaire dans ce script de génération
   const { deflateSync } = require('zlib') as typeof import('zlib');
   const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
   const ihdr = Buffer.alloc(13);

@@ -89,7 +89,7 @@ export async function runLocalOcrOnBuffer(
     } else {
       // Extraction des séquences textuelles structurées (phrases contractuelles ou variables)
       const printableMatches = rawStr.match(
-        /[A-Za-zÀ-ÿ0-9\{\}\[\]«»'’,.;:!?€\/\-\s]{16,}/g
+        /[A-Za-zÀ-ÿ0-9{}[\]«»'’,.;:!?€/\-\s]{16,}/g
       );
       if (printableMatches) {
         for (const candidate of printableMatches) {

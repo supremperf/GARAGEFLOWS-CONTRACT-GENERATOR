@@ -306,7 +306,7 @@ export async function parseDocumentBuffer(
       warnings.push(...ocrRes.warnings);
     }
   } catch (err: any) {
-    throw new Error(`Document illisible ou corrompu (${fileName}) : ${err?.message || 'Erreur interne de lecture'}`);
+    throw new Error(`Document illisible ou corrompu (${fileName}) : ${err?.message || 'Erreur interne de lecture'}`, { cause: err });
   }
 
   const detectedVariables = detectDocumentVariables({

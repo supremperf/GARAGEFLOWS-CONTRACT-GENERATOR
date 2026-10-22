@@ -86,3 +86,43 @@ export async function deleteContract(id: string, deleteFile: boolean): Promise<v
     fs.unlinkSync(current.filePath);
   }
 }
+
+/** Requêtes légères pour les indicateurs : ne désérialisent jamais values_json/report_json. */
+export interface ContractLight {
+  id: string; templateId: string; templateName: string; clientId?: string; clientName: string;
+  exportFormat: GeneratedContractRecord['exportFormat']; fileName: string; filePath: string;
+  fileSize: number; sha256: string; createdAt: string;
+}
+
+export async function countContracts(): Promise<number> {
+  const db = await getSqliteDatabase();
+  const res = db.exec('SELECT COUNT(*) AS n FROM contracts') as unknown as { values: unknown[][] }[];
+  return Number(res[0]?.values[0]?.[0] ?? 0);
+}
+
+export async function listContractsLight(limit = 6): Promise<ContractLight[]> {
+  const db = await getSqliteDatabase();
+  const stmt = db.prepare(
+    'SELECT id, template_id, template_name, client_id, client_name, export_format, file_name, file_path, file_size, sha256, created_at FROM contracts ORDER BY created_at DESC LIMIT ?'
+  );
+  stmt.bind([limit]);
+  const items: ContractLight[] = [];
+  while (stmt.step()) {
+    const row = stmt.getAsObject();
+    items.push({
+      id: String(row.id), templateId: String(row.template_id), templateName: String(row.template_name),
+      clientId: row.client_id ? String(row.client_id) : undefined, clientName: String(row.client_name),
+      exportFormat: row.export_format as ContractLight['exportFormat'], fileName: String(row.file_name),
+      filePath: String(row.file_path), fileSize: Number(row.file_size), sha256: String(row.sha256),
+      createdAt: String(row.created_at),
+    });
+  }
+  stmt.free();
+  return items;
+}
+
+export async function listContractTimeline(): Promise<{ createdAt: string; templateId: string }[]> {
+  const db = await getSqliteDatabase();
+  const res = db.exec('SELECT created_at, template_id FROM contracts') as unknown as { values: unknown[][] }[];
+  return (res[0]?.values || []).map(([createdAt, templateId]: unknown[]) => ({ createdAt: String(createdAt), templateId: String(templateId) }));
+}

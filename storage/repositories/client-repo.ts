@@ -167,3 +167,28 @@ export async function deleteClient(id: string): Promise<void> {
   db.run('DELETE FROM clients WHERE id = ?', [id]);
   persistDatabaseToDisk();
 }
+
+export async function countClients(): Promise<number> {
+  const db = await getSqliteDatabase();
+  const res = db.exec('SELECT COUNT(*) AS n FROM clients') as unknown as { values: unknown[][] }[];
+  return Number(res[0]?.values[0]?.[0] ?? 0);
+}
+
+export async function listClientDates(): Promise<string[]> {
+  const db = await getSqliteDatabase();
+  const res = db.exec('SELECT created_at FROM clients') as unknown as { values: unknown[][] }[];
+  return (res[0]?.values || []).map(([d]: unknown[]) => String(d));
+}
+
+export async function listRecentClientSummaries(limit = 10): Promise<{ id: string; nom: string; prenom: string; createdAt: string }[]> {
+  const db = await getSqliteDatabase();
+  const stmt = db.prepare('SELECT id, nom, prenom, created_at FROM clients ORDER BY created_at DESC LIMIT ?');
+  stmt.bind([limit]);
+  const items: { id: string; nom: string; prenom: string; createdAt: string }[] = [];
+  while (stmt.step()) {
+    const row = stmt.getAsObject();
+    items.push({ id: String(row.id), nom: String(row.nom), prenom: String(row.prenom), createdAt: String(row.created_at) });
+  }
+  stmt.free();
+  return items;
+}

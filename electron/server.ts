@@ -9,6 +9,8 @@ import { validateSafeFilePath } from './security/path-validator';
 
 export interface ServerOptions {
   port?: number;
+  /** Interface d'écoute. Défaut : 127.0.0.1 uniquement (jamais le réseau local). Surchargeable par env HOST pour le dev encadré. */
+  host?: string;
   staticDir?: string;
   electronDialogs?: {
     openFile: (filters?: { name: string; extensions: string[] }[]) => Promise<string | null>;
@@ -37,9 +39,41 @@ function asyncRoute(handler: (req: express.Request, res: express.Response) => Pr
   };
 }
 
+/**
+ * Origines autorisées en CORS : uniquement les boucles locales (interface Electron
+ * servie par ce même serveur, et Vite en développement via son proxy).
+ * Aucune origine externe (site web, réseau local) ne peut appeler l'API :
+ * c'est la protection contre les attaques par navigateur interposé (DNS rebinding inclus).
+ */
+function isAllowedOrigin(origin: string | undefined): boolean {
+  if (!origin) return true; // client non-navigateur ou même origine (pas d'en-tête Origin)
+  try {
+    const url = new URL(origin);
+    return url.hostname === '127.0.0.1' || url.hostname === 'localhost' || url.hostname === '::1';
+  } catch {
+    return false;
+  }
+}
+
 export function createApp(options: ServerOptions = {}) {
   const app = express();
-  app.use(cors());
+  app.disable('x-powered-by');
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        // Origine refusée : aucun en-tête Access-Control-Allow-Origin n'est émis
+        // (le navigateur bloque la lecture), sans transformer la requête en erreur 500.
+        callback(null, isAllowedOrigin(origin));
+      },
+    })
+  );
+  app.use('/api', (_req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'no-referrer');
+    res.setHeader('Cache-Control', 'no-store');
+    next();
+  });
   app.use(express.json({ limit: '80mb' }));
 
   app.get('/api/dictionary', (_req, res) => {
@@ -276,8 +310,9 @@ export function createApp(options: ServerOptions = {}) {
 export function startServer(options: ServerOptions = {}): Promise<number> {
   const app = createApp(options);
   const requested = options.port === undefined ? Number(process.env.PORT || 3001) : options.port;
+  const host = options.host || process.env.HOST || '127.0.0.1';
   return new Promise((resolve, reject) => {
-    const server = app.listen(requested, '0.0.0.0', () => {
+    const server = app.listen(requested, host, () => {
       const address = server.address();
       const bound = typeof address === 'object' && address ? address.port : requested;
       writeAppLog('INFO', `Serveur local démarré sur le port ${bound}`);

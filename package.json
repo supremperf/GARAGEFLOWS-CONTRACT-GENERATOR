@@ -1,7 +1,7 @@
 {
   "name": "garageflows-contract-generator",
   "version": "1.0.0",
-  "description": "GarageFlows Contract Generator — Logiciel professionnel autonome de génération automatique de contrats d'abonnement GarageFlows",
+  "description": "GarageFlows Contract Generator \u2014 Logiciel professionnel autonome de g\u00e9n\u00e9ration automatique de contrats d'abonnement GarageFlows",
   "author": "GarageFlows",
   "license": "UNLICENSED",
   "private": true,
@@ -14,7 +14,8 @@
     "build": "npm run build:examples && npm run build:renderer && npm run build:electron",
     "dist": "npm run build && node scripts/prepare-dist.mjs",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit && tsc -p tsconfig.electron.json --noEmit"
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.electron.json --noEmit",
+    "lint": "eslint ."
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -32,6 +33,7 @@
   },
   "devDependencies": {
     "@assistant-ai/electron-win32-x64": "28.3.3",
+    "@eslint/js": "^10.0.1",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.2",
@@ -41,9 +43,18 @@
     "7zip-bin": "5.2.0",
     "electron": "npm:@assistant-ai/electron-win32-x64@28.3.3",
     "electron-builder": "26.15.3",
+    "eslint": "^9.39.5",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
+    "typescript-eslint": "^8.72.0",
     "vite": "^6.0.5",
-    "vitest": "^2.1.8"
+    "vitest": "^4.1.11"
+  },
+  "overrides": {
+    "mammoth": {
+      "argparse": {
+        "sprintf-js": "^1.1.3"
+      }
+    }
   }
 }

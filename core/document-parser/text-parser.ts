@@ -1,4 +1,5 @@
 import JSZip from 'jszip';
+import { assertZipWithinLimits } from './guards';
 import { DocumentParagraph, DocumentTable } from '../types';
 import { decodeXmlEntities } from './docx-parser';
 
@@ -200,6 +201,7 @@ export function parseTxtBuffer(buffer: Buffer): TextParseOutput {
 
 export async function parsePptxBuffer(buffer: Buffer): Promise<TextParseOutput> {
   const zip = await JSZip.loadAsync(buffer);
+  assertZipWithinLimits(zip, 'Document PPTX');
   const slideFiles = Object.keys(zip.files)
     .filter((f) => /^ppt\/slides\/slide\d+\.xml$/.test(f))
     .sort();
@@ -256,7 +258,7 @@ export function parseLegacyDocBuffer(buffer: Buffer): TextParseOutput {
     return parseRtfBuffer(buffer);
   }
 
-  const matches = rawUtf8.match(/[A-Za-zÀ-ÿ0-9\{\}\[\]«»'’,.;:!?€\/\-\s]{12,}/g) || [];
+  const matches = rawUtf8.match(/[A-Za-zÀ-ÿ0-9{}[\]«»'’,.;:!?€/\-\s]{12,}/g) || [];
   for (const m of matches) {
     const clean = m.trim();
     if (clean.length >= 12 && !/^(?:Root Entry|WordDocument|CompObj|SummaryInformation)/.test(clean)) {

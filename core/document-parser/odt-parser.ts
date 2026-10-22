@@ -1,4 +1,5 @@
 import JSZip from 'jszip';
+import { assertZipWithinLimits } from './guards';
 import { DocumentParagraph, DocumentTable } from '../types';
 import { decodeXmlEntities } from './docx-parser';
 
@@ -26,6 +27,7 @@ function stripOdtTagsToText(xmlFragment: string): string {
 
 export async function parseOdtBuffer(buffer: Buffer): Promise<OdtParseOutput> {
   const zip = await JSZip.loadAsync(buffer);
+  assertZipWithinLimits(zip, 'Document ODT');
   const contentFile = zip.file('content.xml');
   if (!contentFile) {
     throw new Error('Archive ODT invalide : fichier content.xml introuvable.');

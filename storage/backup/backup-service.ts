@@ -45,6 +45,27 @@ export async function exportBackupArchive(): Promise<{ buffer: Buffer; fileName:
   return { buffer, fileName };
 }
 
+/** Limites anti bombe-de-décompression et anti zip-slip pour la restauration. */
+export const MAX_BACKUP_ENTRIES = 5000;
+export const MAX_BACKUP_ENTRY_BYTES = 200 * 1024 * 1024;
+export const MAX_BACKUP_TOTAL_BYTES = 1024 * 1024 * 1024;
+
+export function assertSafeBackupEntryName(name: string, root: string): string {
+  const normalized = name.replace(/\\/g, '/');
+  if (!normalized || normalized.includes('\0') || path.posix.isAbsolute(normalized) || /^[a-zA-Z]:/.test(normalized)) {
+    throw new Error('Archive de sauvegarde refusée : chemin non autorisé.');
+  }
+  if (normalized.split('/').some((part) => part === '..' || part === '')) {
+    throw new Error('Archive de sauvegarde refusée : chemin non autorisé.');
+  }
+  const rootResolved = path.resolve(root);
+  const target = path.resolve(rootResolved, ...normalized.split('/'));
+  if (target !== rootResolved && !target.startsWith(rootResolved + path.sep)) {
+    throw new Error('Archive de sauvegarde refusée : traversée de répertoire.');
+  }
+  return target;
+}
+
 export async function importBackupArchive(buffer: Buffer): Promise<{ restoredFiles: number }> {
   const zip = await JSZip.loadAsync(buffer);
   const manifest = zip.file('backup-manifest.json');
@@ -55,17 +76,28 @@ export async function importBackupArchive(buffer: Buffer): Promise<{ restoredFil
   ensureStorageDirectories();
   resetDatabaseConnection();
 
-  let restoredFiles = 0;
-  const entries = Object.values(zip.files);
+  const entries = Object.values(zip.files).filter((entry) => !entry.dir);
+  if (entries.length > MAX_BACKUP_ENTRIES) {
+    throw new Error(`Archive de sauvegarde refusée : trop de fichiers (${entries.length} > ${MAX_BACKUP_ENTRIES}).`);
+  }
+  // Valider tous les chemins ET la taille totale AVANT d'écrire le moindre fichier.
+  let totalBytes = 0;
+  const plan: { entry: (typeof entries)[number]; target: string }[] = [];
   for (const entry of entries) {
-    if (entry.dir) continue;
-    if (entry.name.includes('..') || path.isAbsolute(entry.name)) {
-      throw new Error('Archive de sauvegarde refusée : chemin non autorisé.');
+    const target = assertSafeBackupEntryName(entry.name, root);
+    const size = (entry as unknown as { _data?: { uncompressedSize?: number } })._data?.uncompressedSize ?? 0;
+    if (size > MAX_BACKUP_ENTRY_BYTES) {
+      throw new Error(`Archive de sauvegarde refusée : fichier trop volumineux (${entry.name}).`);
     }
-    const target = path.resolve(root, entry.name);
-    if (!target.startsWith(path.resolve(root))) {
-      throw new Error('Archive de sauvegarde refusée : traversée de répertoire.');
+    totalBytes += size;
+    if (totalBytes > MAX_BACKUP_TOTAL_BYTES) {
+      throw new Error('Archive de sauvegarde refusée : taille décompressée totale excessive (bombe de décompression suspectée).');
     }
+    plan.push({ entry, target });
+  }
+
+  let restoredFiles = 0;
+  for (const { entry, target } of plan) {
     fs.mkdirSync(path.dirname(target), { recursive: true, mode: 0o700 });
     fs.writeFileSync(target, await entry.async('nodebuffer'), { mode: 0o600 });
     restoredFiles += 1;

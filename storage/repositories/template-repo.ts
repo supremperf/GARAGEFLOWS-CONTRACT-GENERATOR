@@ -286,3 +286,38 @@ export async function touchTemplateUsed(id: string): Promise<void> {
   db.run('UPDATE templates SET last_used_at = ? WHERE id = ?', [new Date().toISOString(), id]);
   persistDatabaseToDisk();
 }
+
+export async function countTemplates(): Promise<number> {
+  const db = await getSqliteDatabase();
+  const res = db.exec('SELECT COUNT(*) AS n FROM templates') as unknown as { values: unknown[][] }[];
+  return Number(res[0]?.values[0]?.[0] ?? 0);
+}
+
+export async function listTemplateDates(): Promise<string[]> {
+  const db = await getSqliteDatabase();
+  const res = db.exec('SELECT created_at FROM templates') as unknown as { values: unknown[][] }[];
+  return (res[0]?.values || []).map(([d]: unknown[]) => String(d));
+}
+
+export async function listTemplatesLight(limit = 6): Promise<Omit<TemplateRecord, 'variables' | 'warnings' | 'limitations' | 'supportedExports'>[]> {
+  const db = await getSqliteDatabase();
+  const stmt = db.prepare(
+    'SELECT id, name, category, description, original_file_name, format, is_default, page_count, support_level, created_at, updated_at, last_used_at FROM templates ORDER BY is_default DESC, updated_at DESC LIMIT ?'
+  );
+  stmt.bind([limit]);
+  const items: Omit<TemplateRecord, 'variables' | 'warnings' | 'limitations' | 'supportedExports'>[] = [];
+  while (stmt.step()) {
+    const row = stmt.getAsObject();
+    items.push({
+      id: String(row.id), name: String(row.name), category: String(row.category), description: String(row.description),
+      originalFileName: String(row.original_file_name), storedFilePath: '', format: row.format as TemplateRecord['format'],
+      fileSize: 0, sha256: '', structuralFingerprint: '', isDefault: Number(row.is_default) === 1,
+      isScanned: false, ocrApplied: false, pageCount: Number(row.page_count),
+      supportLevel: row.support_level as TemplateRecord['supportLevel'],
+      createdAt: String(row.created_at), updatedAt: String(row.updated_at),
+      lastUsedAt: row.last_used_at ? String(row.last_used_at) : undefined,
+    });
+  }
+  stmt.free();
+  return items;
+}

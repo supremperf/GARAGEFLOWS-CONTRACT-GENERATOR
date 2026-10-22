@@ -1,5 +1,6 @@
 import JSZip from 'jszip';
 import * as XLSX from 'xlsx';
+import { withPrototypePollutionGuard } from '../document-parser/guards';
 import { decodeXmlEntities, encodeXmlEntities } from '../document-parser/docx-parser';
 import {
   computeTextSpanReplacements,
@@ -110,8 +111,8 @@ export async function replaceInSpreadsheetBuffer(
   // Traitement CSV / ODS / XLS via SheetJS en préservant les formules et dimensions
   const workbook =
     format === 'csv'
-      ? XLSX.read(originalBuffer.toString('utf8'), { type: 'string', cellFormula: true, cellStyles: true })
-      : XLSX.read(Buffer.from(originalBuffer), { type: 'buffer', cellFormula: true, cellStyles: true });
+      ? withPrototypePollutionGuard(() => XLSX.read(originalBuffer.toString('utf8'), { type: 'string', cellFormula: true, cellStyles: true }))
+      : withPrototypePollutionGuard(() => XLSX.read(Buffer.from(originalBuffer), { type: 'buffer', cellFormula: true, cellStyles: true }));
 
   for (const sheetName of workbook.SheetNames) {
     const ws = workbook.Sheets[sheetName];

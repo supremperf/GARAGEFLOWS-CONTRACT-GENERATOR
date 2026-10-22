@@ -60,6 +60,7 @@ export async function exportGeneratedDocumentToDisk(params: {
   }
 
   // Nettoyer le nom de fichier contre toute traversée de répertoire
+  // eslint-disable-next-line no-control-regex -- retrait volontaire des caractères de contrôle du nom de fichier
   const safeFileName = path.basename(fileName).replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
   const finalFileName = safeFileName.toLowerCase().endsWith(`.${format}`)
     ? safeFileName

@@ -3,6 +3,9 @@ on:
   workflow_dispatch:
   push:
     branches: [arena/04806916-garageflows-contract-generator]
+concurrency:
+  group: windows-distribution-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:

@@ -30,7 +30,7 @@ describe('Windows release metadata — real PE resources, not mocks', () => {
   it('uses package.json as the single source', () => {
     const current = readBuildPolicy();
     expect(current.pkg.version).toBe(current.appVersion);
-    expect(current.windowsVersion).toBe(`${current.appVersion}.0`);
+    expect(current.windowsVersion).toBe(`${current.appVersion.replace(/[-+].*$/, '')}.0`);
   });
   it.each([[1033, 1200], [1033, 1252], [1036, 1252], [0, 1200]])('accepts a valid table lang=%i codepage=%i', (lang, codepage) => {
     expect(verifyPeMetadata(fixture({ lang, codepage }), policy, 'application').versions).toHaveLength(1);
@@ -57,6 +57,11 @@ describe('Windows release metadata — real PE resources, not mocks', () => {
     const pre = { ...versionPolicy('1.0.1-beta.2'), productName: policy.productName };
     expect(() => verifyPeMetadata(fixture({ product: pre.appVersion }), pre, 'application')).not.toThrow();
     expect(() => verifyPeMetadata(fixture(), pre, 'application')).toThrow();
+  });
+  it('preserves SemVer build identity in the product string', () => {
+    const build = { ...versionPolicy('1.0.1+build.7'), productName: policy.productName };
+    expect(() => verifyPeMetadata(fixture({ product: build.appVersion }), build, 'application')).not.toThrow();
+    expect(() => verifyPeMetadata(fixture(), build, 'application')).toThrow();
   });
   it.each(['1.0', 'v1.0.1', '65536.0.0', '1.0.1.9'])('rejects invalid/unrepresentable package version %s', version => {
     expect(() => versionPolicy(version)).toThrow();

@@ -41,8 +41,8 @@ async function launch() {
   await expect.poll(() => electronApp.windows().filter(p => p.url().startsWith('http://127.0.0.1:')).length, { timeout: 60000 }).toBe(1);
   const page = electronApp.windows().find(p => p.url().startsWith('http://127.0.0.1:'));
   await expect(page.locator('.app-shell')).toBeVisible();
-  await expect(page.locator('img.brand-lockup').first()).toBeVisible();
-  assert.ok(await page.locator('img.brand-lockup').first().evaluate(img => img.naturalWidth > 0), 'Installed logo not loaded');
+  await expect(page.locator('img.brand-emblem').first()).toBeVisible();
+  assert.ok(await page.locator('img.brand-emblem').first().evaluate(img => img.naturalWidth > 0), 'Installed logo not loaded');
   return page;
 }
 try {
@@ -69,7 +69,7 @@ try {
     const font = await pdf.embedFont(StandardFonts.Helvetica);
     pdf.addPage().drawText('GarageFlows Martin Contrat abonnement 99,99 EUR', { x: 40, y: 700, font });
     const { parsePdfBuffer } = require(path.join(app.getAppPath(), 'dist-electron/core/document-parser/pdf-parser.js'));
-    const parsed = await parsePdfBuffer(Buffer.from(await pdf.save()));
+    const parsed = await parsePdfBuffer(Buffer.from(await pdf.save()), 'native-runtime.pdf');
     if (!parsed.pdfItems.length || !/Martin/.test(parsed.fullText) || parsed.isScanned) throw new Error(`Packaged PDF.js failed: ${JSON.stringify(parsed.warnings)}`);
     const repo = require(path.join(app.getAppPath(), 'dist-electron/storage/repositories/client-repo.js'));
     await repo.createClient({ nom: 'TEST_INSTALLATION_ISOLE', prenom: 'Martin' });

@@ -10,8 +10,10 @@ import { NtExecutable, NtExecutableResource, Resource } from 'resedit';
 export const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 
 export function versionPolicy(version) {
-  assert.equal(semver.valid(version), version, `package.json: invalid canonical SemVer ${version}`);
   const parsed = semver.parse(version);
+  assert.ok(parsed, `package.json: invalid SemVer ${version}`);
+  const canonical = parsed.version + (parsed.build.length ? `+${parsed.build.join('.')}` : '');
+  assert.equal(canonical, version, `package.json: invalid canonical SemVer ${version}`);
   const parts = [parsed.major, parsed.minor, parsed.patch, 0];
   assert.ok(parts.every(n => n <= 65535), `Version exceeds Windows WORD fields: ${version}`);
   return { appVersion: version, windowsVersion: parts.join('.'), parts };
@@ -82,7 +84,7 @@ export function verifyPeMetadata(buffer, policy, kind, label = kind) {
       assert.equal(quad(values.FileVersion, table), policy.windowsVersion, `${table}: wrong string FileVersion`);
       // Stable releases may use Windows' four-component notation; prereleases must retain their identity.
       const product = values.ProductVersion;
-      const matches = product === policy.appVersion || (!semver.prerelease(policy.appVersion) && /^\d+\.\d+\.\d+(?:\.\d+)?$/.test(product || '') && quad(product, table) === policy.windowsVersion);
+      const matches = product === policy.appVersion || (!semver.prerelease(policy.appVersion) && semver.parse(policy.appVersion).build.length === 0 && /^\d+\.\d+\.\d+(?:\.\d+)?$/.test(product || '') && quad(product, table) === policy.windowsVersion);
       assert.ok(matches, `${table}: wrong string ProductVersion ${JSON.stringify(product)}; expected ${policy.appVersion}; actual ${diagnostics}`);
     }
   }

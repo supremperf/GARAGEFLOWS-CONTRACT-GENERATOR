@@ -38,7 +38,25 @@ const resources = 'dist/win-unpacked/resources';
 const assets = fs.readdirSync(path.join(root, 'public/branding'));
 const archive = path.join(root, resources, 'app.asar');
 const packageFiles = asar.listPackage(archive);
-for (const tool of ['electron-builder', 'typescript', 'eslint', 'vite', 'sharp', 'resedit', '@playwright/test']) {
+const digestBuffer = buffer => createHash('sha256').update(buffer).digest('hex');
+const exeInfo = verifyPeMetadata(read(`dist/win-unpacked/${productName}.exe`), policy, 'application');
+const integrityEntries = exeInfo.resources.entries.filter(e => e.type === 'INTEGRITY' && e.id === 'ELECTRONASAR');
+assert.equal(integrityEntries.length, 1, 'Missing/ambiguous Electron ASAR integrity PE resource');
+const integrity = JSON.parse(Buffer.from(integrityEntries[0].bin).toString('utf8'));
+const appIntegrity = integrity.find(e => e.file.replaceAll('\\', '/') === 'resources/app.asar');
+assert.equal(appIntegrity?.alg, 'SHA256', 'Missing ASAR SHA256 declaration');
+assert.equal(appIntegrity.value, digestBuffer(asar.getRawHeader(archive).headerString), 'Electron ASAR header integrity mismatch');
+let verifiedAsarFiles = 0;
+for (const name of packageFiles) {
+  const relative = name.replace(/^\//, '');
+  const entry = asar.statFile(archive, relative, false);
+  if (entry.files || entry.link) continue;
+  assert.equal(entry.integrity?.algorithm, 'SHA256', `Missing file integrity: ${name}`);
+  assert.equal(digestBuffer(asar.extractFile(archive, relative)), entry.integrity.hash, `ASAR file integrity mismatch: ${name}`);
+  verifiedAsarFiles++;
+}
+console.log(`[verify] PE ASAR header SHA256 and ${verifiedAsarFiles} actual ASAR/unpacked file hashes verified.`);
+for (const tool of ['electron', '@assistant-ai/electron-win32-x64', '@electron/asar', '@electron/rebuild', 'electron-builder', 'typescript', 'eslint', 'vite', 'sharp', 'resedit', '@playwright/test']) {
   assert.ok(!packageFiles.some(name => name.startsWith(`/node_modules/${tool}/`)), `Build-only dependency shipped: ${tool}`);
 }
 let nativeCount = 0;
@@ -56,6 +74,11 @@ function verifyNativeAddon(binary, name) {
   assert.equal(binary.readUInt32LE(pe), 0x00004550, `Invalid native PE: ${name}`);
   assert.equal(binary.readUInt16LE(pe + 4), 0x8664, `Wrong native architecture: ${name}`);
 }
+const unpackedRoot = path.join(root, 'dist/win-unpacked');
+const payloadFiles = fs.readdirSync(unpackedRoot, { recursive: true }).filter(name => fs.statSync(path.join(unpackedRoot, name)).isFile());
+const dlls = payloadFiles.filter(name => name.toLowerCase().endsWith('.dll'));
+for (const name of dlls) verifyNativeAddon(fs.readFileSync(path.join(unpackedRoot, name)), name);
+console.log(`[verify] ${dlls.length} DLL(s) inspected as Windows AMD64.`);
 console.log(`[verify] ${nativeCount} native addon(s) inspected as unpacked Windows AMD64; build tools absent.`);
 for (const name of assets) {
   const original = read(`public/branding/${name}`);
@@ -75,15 +98,14 @@ const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'garageflows-branding-'));
 try {
   const sevenZip = require('7zip-bin').path7za;
   const result = spawnSync(sevenZip, ['x', '-y', `-o${temp}`,
-    path.join(root, 'dist/GarageFlows-Contract-Generator-Setup.exe'),
-    'GarageFlows Contract Generator.exe', 'resources/branding/*', 'resources/app.asar'], { encoding: 'utf8' });
+    path.join(root, 'dist/GarageFlows-Contract-Generator-Setup.exe')], { encoding: 'utf8' });
   // p7zip returns warning 1 for the extra NSIS data surrounding its embedded 7z.
   assert.ok(result.status === 0 || result.status === 1, result.stderr || String(result.error));
   const digest = (file) => createHash('sha256').update(fs.readFileSync(file)).digest('hex');
-  for (const file of ['GarageFlows Contract Generator.exe', 'resources/app.asar', ...assets.map((name) => `resources/branding/${name}`)]) {
+  for (const file of payloadFiles) {
     assert.equal(digest(path.join(temp, file)), digest(path.join(root, 'dist/win-unpacked', file)), `Setup payload mismatch: ${file}`);
   }
-  console.log('[verify] Setup payload extracted: executable, ASAR and all official assets match win-unpacked by SHA-256.');
+  console.log(`[verify] Entire Setup payload extracted: ${payloadFiles.length} files (EXE, ASAR, unpacked modules/WASM, DLLs, resources, examples) match win-unpacked by SHA-256.`);
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });
 }

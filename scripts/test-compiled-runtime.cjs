@@ -14,7 +14,7 @@ async function main() {
   const doc = await PDFDocument.create();
   const font = await doc.embedFont(StandardFonts.Helvetica);
   doc.addPage().drawText('GarageFlows CLIENT_NOM Martin Contrat abonnement 99,99 EUR', { x: 40, y: 700, font });
-  const parsed = await parsePdfBuffer(Buffer.from(await doc.save()));
+  const parsed = await parsePdfBuffer(Buffer.from(await doc.save()), 'runtime.pdf');
   assert.match(parsed.fullText, /Martin/);
   assert.equal(parsed.isScanned, false, 'Compiled PDF.js ESM extraction failed');
   assert.ok(parsed.pdfItems.length > 0, 'No positioned PDF.js text: swallowed ESM import failure');

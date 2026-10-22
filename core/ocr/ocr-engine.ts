@@ -51,8 +51,8 @@ export async function runLocalOcrOnBuffer(
           warnings,
         };
       }
-    } catch (err: any) {
-      warnings.push(`Avertissement moteur Tesseract local : ${err?.message || 'bascule sur extracteur local'}`);
+    } catch (err) {
+      warnings.push(`Avertissement moteur Tesseract local : ${err instanceof Error ? err.message : 'bascule sur extracteur local'}`);
     }
   }
 

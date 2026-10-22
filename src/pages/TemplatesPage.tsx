@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
-import { api, fileToBase64 } from '../api';
+import { api, fileToBase64, type DetectedVariable, type DictionaryFieldEntry, type TemplateRecord } from '../api';
 
 export default function TemplatesPage({ notify }: { notify: (m: string) => void }) {
-  const [items, setItems] = useState<any[]>([]);
-  const [dictionary, setDictionary] = useState<any[]>([]);
-  const [editing, setEditing] = useState<any>(null);
+  const [items, setItems] = useState<TemplateRecord[]>([]);
+  const [dictionary, setDictionary] = useState<DictionaryFieldEntry[]>([]);
+  const [editing, setEditing] = useState<TemplateRecord | null>(null);
   const [meta, setMeta] = useState({ name: '', category: 'Abonnement', description: '' });
 
-  const load = () => api.templates().then(setItems).catch((e) => notify(e.message));
+  const load = () => api.templates().then(setItems).catch((e: Error) => notify(e.message));
   useEffect(() => {
     load();
     api.dictionary().then(setDictionary).catch(() => undefined);
@@ -20,12 +20,13 @@ export default function TemplatesPage({ notify }: { notify: (m: string) => void 
       notify(`Modèle importé : ${file.name}`);
       setMeta({ name: '', category: 'Abonnement', description: '' });
       load();
-    } catch (error: any) {
-      notify(error.message);
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Une erreur est survenue.');
     }
   };
 
   const saveEditing = async () => {
+    if (!editing) return;
     try {
       await api.updateTemplate(editing.id, {
         name: editing.name,
@@ -37,8 +38,8 @@ export default function TemplatesPage({ notify }: { notify: (m: string) => void 
       notify('Correspondances enregistrées.');
       setEditing(null);
       load();
-    } catch (error: any) {
-      notify(error.message);
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Une erreur est survenue.');
     }
   };
 
@@ -50,7 +51,7 @@ export default function TemplatesPage({ notify }: { notify: (m: string) => void 
             <h3>Importer un modèle</h3>
             <p className="help">Le fichier original est copié et n’est jamais modifié. Formats : PDF, DOCX, DOC, ODT, RTF, TXT, HTML, XLSX, XLS, ODS, CSV, PPTX, PNG, JPG, TIFF.</p>
           </div>
-          <button className="btn-ghost" onClick={() => api.importExamples().then((r) => notify(`${r.imported.length} exemple(s) importé(s).`)).then(load).catch((e) => notify(e.message))}>
+          <button className="btn-ghost" onClick={() => api.importExamples().then((r) => notify(`${r.imported.length} exemple(s) importé(s).`)).then(load).catch((e: Error) => notify(e.message))}>
             Importer les exemples livrés
           </button>
         </div>
@@ -78,7 +79,7 @@ export default function TemplatesPage({ notify }: { notify: (m: string) => void 
             {tpl.limitations?.slice(0, 1).map((w: string) => <div key={w} className="info-box">{w}</div>)}
             <div className="row">
               <button className="btn" onClick={() => setEditing(JSON.parse(JSON.stringify(tpl)))}>Variables</button>
-              <button className="btn-ghost" onClick={() => api.analyzeTemplate(tpl.id).then(() => { notify('Analyse relancée.'); load(); }).catch((e) => notify(e.message))}>Réanalyser</button>
+              <button className="btn-ghost" onClick={() => api.analyzeTemplate(tpl.id).then(() => { notify('Analyse relancée.'); load(); }).catch((e: Error) => notify(e.message))}>Réanalyser</button>
             </div>
             <div className="row">
               <button className="btn-ghost" onClick={() => api.updateTemplate(tpl.id, { isDefault: true }).then(load)}>Défaut</button>
@@ -107,7 +108,7 @@ export default function TemplatesPage({ notify }: { notify: (m: string) => void 
                   <tr><th>Texte original</th><th>Champ</th><th>Type</th><th>Occ.</th><th>Confiance</th><th>Obligatoire</th><th>Validé</th></tr>
                 </thead>
                 <tbody>
-                  {editing.variables.map((variable: any, index: number) => (
+                  {editing.variables.map((variable, index: number) => (
                     <tr key={variable.id}>
                       <td className="mono">{variable.originalText}<div className="help">{variable.locations?.[0]?.fullSentence?.slice(0, 90)}</div></td>
                       <td>
@@ -144,7 +145,7 @@ export default function TemplatesPage({ notify }: { notify: (m: string) => void 
               <button className="btn-ghost" onClick={() => {
                 const text = prompt('Texte exact à remplacer manuellement');
                 if (!text) return;
-                const next = [...editing.variables, {
+                const next: DetectedVariable[] = [...editing.variables, {
                   id: `manual_${Date.now()}`,
                   name: 'Remplacement manuel',
                   originalText: text,

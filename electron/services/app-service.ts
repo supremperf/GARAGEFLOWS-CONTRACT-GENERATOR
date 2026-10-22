@@ -419,8 +419,8 @@ export async function importBundledExamples(): Promise<{ imported: string[]; ski
       });
       knownHashes.add(hash);
       imported.push(fileName);
-    } catch (error: any) {
-      skipped.push(`${fileName} (${error?.message || 'ignoré'})`);
+    } catch (error) {
+      skipped.push(`${fileName} (${error instanceof Error ? error.message : 'ignoré'})`);
     }
   }
   return { imported, skipped };

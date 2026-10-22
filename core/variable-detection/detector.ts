@@ -5,8 +5,6 @@ import {
   DocumentTable,
   PdfTextItem,
   SpreadsheetSheet,
-  VariableCategory,
-  VariableDataType,
   VariableLocation,
   VariableSyntaxType,
 } from '../types';
@@ -56,7 +54,6 @@ export function inferGenericVariableFromContext(
 } {
   const before = normalizeContext(contextBefore);
   const after = normalizeContext(contextAfter);
-  const sentence = normalizeContext(fullSentence);
 
   const getEntry = (key: string): DictionaryFieldEntry =>
     OFFICIAL_VARIABLE_DICTIONARY.find((e) => e.key === key) || OFFICIAL_VARIABLE_DICTIONARY[0];

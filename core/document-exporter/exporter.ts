@@ -78,9 +78,12 @@ export async function exportGeneratedDocumentToDisk(params: {
 
   // Protection stricte contre l'écrasement silencieux (Section 14 & Règle 13)
   if (fs.existsSync(targetPath) && !overwriteConfirmed) {
-    const err = new Error(`FILE_ALREADY_EXISTS: Un fichier nommé « ${finalFileName} » existe déjà dans ce dossier.`);
-    (err as any).code = 'FILE_ALREADY_EXISTS';
-    (err as any).existingPath = targetPath;
+    const err = new Error(`FILE_ALREADY_EXISTS: Un fichier nommé « ${finalFileName} » existe déjà dans ce dossier.`) as Error & {
+      code: string;
+      existingPath: string;
+    };
+    err.code = 'FILE_ALREADY_EXISTS';
+    err.existingPath = targetPath;
     throw err;
   }
 

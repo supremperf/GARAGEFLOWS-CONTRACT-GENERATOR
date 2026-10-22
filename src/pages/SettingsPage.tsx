@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { api, fileToBase64 } from '../api';
+import { api, fileToBase64, type SettingsBundle } from '../api';
 
 export default function SettingsPage({ notify }: { notify: (m: string) => void }) {
-  const [settings, setSettings] = useState<any>(null);
+  const [settings, setSettings] = useState<SettingsBundle | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
   useEffect(() => {
-    api.settings().then(setSettings).catch((e) => notify(e.message));
+    api.settings().then(setSettings).catch((e: Error) => notify(e.message));
     api.logs().then((r) => setLogs(r.lines)).catch(() => undefined);
   }, []);
   if (!settings) return <div className="card">Chargement…</div>;
@@ -28,7 +28,7 @@ export default function SettingsPage({ notify }: { notify: (m: string) => void }
           <button className="btn" onClick={() => api.exportBackup().then((r) => {
             notify(`Sauvegarde créée : ${r.fileName}`);
             window.location.href = '/api/backup/download';
-          }).catch((e) => notify(e.message))}>Exporter une sauvegarde</button>
+          }).catch((e: Error) => notify(e.message))}>Exporter une sauvegarde</button>
           <label className="btn-ghost">Restaurer une archive
             <input hidden type="file" accept=".zip,application/zip" onChange={async (e) => {
               const file = e.target.files?.[0];

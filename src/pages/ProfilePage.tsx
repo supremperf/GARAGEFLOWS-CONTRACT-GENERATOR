@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
-import { api, fileToBase64 } from '../api';
+import { api, fileToBase64, type CustomVariableDefinition, type ProfessionalProfile, type SubscriptionConfig } from '../api';
 
 export default function ProfilePage({ notify }: { notify: (m: string) => void }) {
-  const [profile, setProfile] = useState<any>(null);
-  const [subscription, setSubscription] = useState<any>(null);
-  const [customs, setCustoms] = useState<any[]>([]);
+  const [profile, setProfile] = useState<ProfessionalProfile | null>(null);
+  const [subscription, setSubscription] = useState<SubscriptionConfig | null>(null);
+  const [customs, setCustoms] = useState<CustomVariableDefinition[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
 
   useEffect(() => {
     Promise.all([api.profile(), api.subscription(), api.customVariables()])
       .then(([p, s, c]) => { setProfile(p); setSubscription(s); setCustoms(c); })
-      .catch((e) => notify(e.message));
+      .catch((e: Error) => notify(e.message));
   }, []);
 
   useEffect(() => {
@@ -27,8 +27,8 @@ export default function ProfilePage({ notify }: { notify: (m: string) => void })
 
   if (!profile || !subscription) return <div className="card">Chargement…</div>;
 
-  const setP = (key: string, value: string) => setProfile({ ...profile, [key]: value });
-  const setS = (key: string, value: string) => setSubscription({ ...subscription, [key]: value });
+  const setP = (key: keyof ProfessionalProfile, value: string) => { if (profile) setProfile({ ...profile, [key]: value }); };
+  const setS = (key: keyof SubscriptionConfig, value: string) => { if (subscription) setSubscription({ ...subscription, [key]: value }); };
 
   const pointer = (event: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -46,12 +46,12 @@ export default function ProfilePage({ notify }: { notify: (m: string) => void })
         <h3>Identité et entreprise</h3>
         <p className="help">Ces informations sont réutilisées dans tous les contrats. Aucune donnée d’entreprise n’est inventée : laissez vide ce que vous n’avez pas encore renseigné.</p>
         <div className="grid-3">
-          {[
+          {([
             ['nom', 'Nom'], ['prenom', 'Prénom'], ['nomCommercial', 'Nom commercial'], ['entrepriseNom', 'Nom de l’entreprise'],
             ['adresse', 'Adresse'], ['codePostal', 'Code postal'], ['ville', 'Ville'], ['pays', 'Pays'],
             ['siret', 'SIRET'], ['formeJuridique', 'Forme juridique'], ['emailPro', 'E-mail professionnel'], ['telephonePro', 'Téléphone'],
             ['siteInternet', 'Site Internet'], ['nomSignataire', 'Nom du signataire'], ['fonctionSignataire', 'Fonction'],
-          ].map(([key, label]) => (
+          ] as [keyof ProfessionalProfile, string][]).map(([key, label]) => (
             <label key={key} className="field">{label}<input value={profile[key] || ''} onChange={(e) => setP(key, e.target.value)} /></label>
           ))}
         </div>
@@ -60,9 +60,9 @@ export default function ProfilePage({ notify }: { notify: (m: string) => void })
         <h3>Coordonnées bancaires</h3>
         <p className="help">IBAN, BIC et RIB ne sont jamais écrits dans les journaux techniques.</p>
         <div className="grid-3">
-          {[
+          {([
             ['titulaireCompte', 'Titulaire du compte'], ['iban', 'IBAN'], ['bic', 'BIC'], ['banque', 'Banque'], ['rib', 'RIB'],
-          ].map(([key, label]) => (
+          ] as [keyof ProfessionalProfile, string][]).map(([key, label]) => (
             <label key={key} className="field">{label}<input value={profile[key] || ''} onChange={(e) => setP(key, e.target.value)} autoComplete="off" /></label>
           ))}
         </div>
@@ -96,7 +96,7 @@ export default function ProfilePage({ notify }: { notify: (m: string) => void })
           </label>
         </div>
         {(profile.signatureDessinee || profile.signatureImage) && <div className="ok-box">Signature enregistrée localement, prête à être réutilisée.</div>}
-        <button className="btn" onClick={() => api.saveProfile(profile).then((saved) => { setProfile(saved); notify('Informations professionnelles enregistrées.'); }).catch((e) => notify(e.message))}>Enregistrer mes informations</button>
+        <button className="btn" onClick={() => api.saveProfile(profile).then((saved) => { setProfile(saved); notify('Informations professionnelles enregistrées.'); }).catch((e: Error) => notify(e.message))}>Enregistrer mes informations</button>
       </section>
       <section className="card stack">
         <h3>Abonnement GarageFlows</h3>
@@ -115,7 +115,7 @@ export default function ProfilePage({ notify }: { notify: (m: string) => void })
         <label className="field">Conditions de résiliation validées par vous
           <textarea value={subscription.conditionsResiliation} onChange={(e) => setS('conditionsResiliation', e.target.value)} placeholder="Saisissez uniquement une clause que vous avez validée. Elle n’est pas insérée automatiquement dans le modèle." />
         </label>
-        <button className="btn" onClick={() => api.saveSubscription(subscription).then((saved) => { setSubscription(saved); notify(`Abonnement enregistré. HT calculé : ${saved.prixHT} €`); }).catch((e) => notify(e.message))}>Enregistrer l’abonnement</button>
+        <button className="btn" onClick={() => api.saveSubscription(subscription).then((saved) => { setSubscription(saved); notify(`Abonnement enregistré. HT calculé : ${saved.prixHT} €`); }).catch((e: Error) => notify(e.message))}>Enregistrer l’abonnement</button>
         <div className="info-box">Prix HT actuel : {subscription.prixHT} € · TVA : {subscription.tvaMontant} € · TTC : {subscription.prixTTC} €</div>
       </section>
       <section className="card stack">
@@ -128,7 +128,7 @@ export default function ProfilePage({ notify }: { notify: (m: string) => void })
           </div>
         ))}
         <button className="btn-ghost" onClick={() => setCustoms([...customs, { key: 'CLIENT_CODE_CLIENT', label: 'Code client', category: 'personnalise', dataType: 'text', defaultValue: '', required: false, synonyms: [], description: '' }])}>Ajouter une variable</button>
-        <button className="btn" onClick={() => api.saveCustomVariables(customs).then((saved) => { setCustoms(saved); notify('Dictionnaire personnalisé enregistré.'); }).catch((e) => notify(e.message))}>Enregistrer le dictionnaire</button>
+        <button className="btn" onClick={() => api.saveCustomVariables(customs).then((saved) => { setCustoms(saved); notify('Dictionnaire personnalisé enregistré.'); }).catch((e: Error) => notify(e.message))}>Enregistrer le dictionnaire</button>
       </section>
     </div>
   );

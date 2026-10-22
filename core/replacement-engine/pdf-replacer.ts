@@ -1,12 +1,11 @@
 import zlib from 'zlib';
 import {
   PDFDocument,
-  PDFName,
-  PDFRawStream,
+  PDFTextField,
   rgb,
   StandardFonts,
 } from 'pdf-lib';
-import { FidelityIssue, PdfTextItem } from '../types';
+import { FidelityIssue } from '../types';
 import { parsePdfBuffer } from '../document-parser/pdf-parser';
 import {
   computeTextSpanReplacements,
@@ -19,121 +18,6 @@ export interface PdfReplacementResult {
   fidelityIssues: FidelityIssue[];
 }
 
-function escapePdfLiteralString(str: string): string {
-  // Encodage WinAnsi (Latin-1) pour opérateurs PDF (Tj)
-  let out = '';
-  for (let i = 0; i < str.length; i++) {
-    const code = str.charCodeAt(i);
-    if (str[i] === '\\' || str[i] === '(' || str[i] === ')') {
-      out += '\\' + str[i];
-    } else if (code >= 32 && code <= 126) {
-      out += str[i];
-    } else if (code === 0x20ac) {
-      // Symbole Euro € en WinAnsi = 0x80 (octal \200)
-      out += '\\200';
-    } else if (code >= 160 && code <= 255) {
-      out += '\\' + code.toString(8).padStart(3, '0');
-    } else if (code === 0x2019 || code === 0x2018) {
-      out += "\\'";
-    } else if (code === 0x2013 || code === 0x2014) {
-      out += '-';
-    } else {
-      out += '?';
-    }
-  }
-  return out;
-}
-
-function encodeWinAnsiHex(str: string): string {
-  const bytes: number[] = [];
-  for (let i = 0; i < str.length; i++) {
-    const code = str.charCodeAt(i);
-    if (code === 0x20ac) {
-      bytes.push(0x80);
-    } else if (code === 0x2019 || code === 0x2018) {
-      bytes.push(0x27);
-    } else if (code === 0x2013 || code === 0x2014) {
-      bytes.push(0x2d);
-    } else if (code <= 255) {
-      bytes.push(code);
-    } else {
-      bytes.push(0x3f);
-    }
-  }
-  return Buffer.from(bytes).toString('hex').toUpperCase();
-}
-
-function decodePdfContentToken(rawToken: string): string {
-  if (rawToken.startsWith('<') && rawToken.endsWith('>')) {
-    const hex = rawToken.slice(1, -1).replace(/\s+/g, '');
-    const buf = Buffer.from(hex, 'hex');
-    // Vérifier si UTF-16BE ou WinAnsi/Latin1
-    if (buf.length >= 2 && buf[0] === 0 && buf[1] !== 0) {
-      let s = '';
-      for (let i = 0; i + 1 < buf.length; i += 2) {
-        s += String.fromCharCode((buf[i] << 8) | buf[i + 1]);
-      }
-      return s;
-    }
-    let s = '';
-    for (let i = 0; i < buf.length; i++) {
-      const b = buf[i];
-      s += b === 0x80 ? '€' : String.fromCharCode(b);
-    }
-    return s;
-  }
-  if (rawToken.startsWith('(') && rawToken.endsWith(')')) {
-    return rawToken
-      .slice(1, -1)
-      .replace(/\\([0-7]{3})/g, (_, oct) => {
-        const c = parseInt(oct, 8);
-        return c === 0x80 ? '€' : String.fromCharCode(c);
-      })
-      .replace(/\\([()\\])/g, '$1');
-  }
-  return rawToken;
-}
-
-/**
- * Purger les opérateurs contenant les marqueurs originaux dans le flux binaire PDF décompressé
- * afin qu'aucune ancienne information ou variable ne reste récupérable dans le fichier PDF.
- */
-function purgeAndReplaceInContentStream(
-  streamText: string,
-  tokensToPurge: Set<string>
-): { updatedStream: string; purgedCount: number } {
-  let purgedCount = 0;
-
-  // Remplacer dans les opérateurs (...) Tj et <...> Tj et [...] TJ
-  const updatedStream = streamText.replace(
-    /(\((?:\\.|[^\\()])*\)|<[0-9A-Fa-f\s]+>)\s*Tj|\[((?:\\.|[^\]])*)\]\s*TJ/g,
-    (fullOp, singleToken, tjArrayContent) => {
-      if (singleToken) {
-        const decoded = decodePdfContentToken(singleToken);
-        for (const target of tokensToPurge) {
-          if (decoded.includes(target)) {
-            purgedCount += 1;
-            return '() Tj';
-          }
-        }
-        return fullOp;
-      }
-      if (tjArrayContent !== undefined) {
-        const subTokens = tjArrayContent.match(/\((?:\\.|[^\\()])*\)|<[0-9A-Fa-f\s]+>/g) || [];
-        const joined = subTokens.map(decodePdfContentToken).join('');
-        for (const target of tokensToPurge) {
-          if (joined.includes(target)) {
-            purgedCount += 1;
-            return '[] TJ';
-          }
-        }
-      }
-      return fullOp;
-    }
-  );
-
-  return { updatedStream, purgedCount };
-}
 
 function decodePdfBytes(bytes: Buffer): string {
   let out = '';
@@ -324,8 +208,8 @@ export async function replaceInPdfBuffer(
       for (const field of form.getFields()) {
         const fName = field.getName();
         const matched = instructions.find((i) => i.canonicalField === fName.toUpperCase() || i.originalText.includes(fName));
-        if (matched && typeof (field as any).setText === 'function') {
-          (field as any).setText(matched.value);
+        if (matched && field instanceof PDFTextField) {
+          field.setText(matched.value);
           replacementsCount[matched.variableId] = (replacementsCount[matched.variableId] || 0) + 1;
         }
       }

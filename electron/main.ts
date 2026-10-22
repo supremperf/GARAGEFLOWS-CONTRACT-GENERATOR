@@ -91,8 +91,8 @@ app.whenReady().then(async () => {
 
   createWindow(typeof port === 'number' ? port : 3001);
   writeAppLog('INFO', 'Application démarrée');
-}).catch((error: any) => {
-  writeAppLog('ERROR', error?.message || 'Échec de démarrage');
+}).catch((error: Error) => {
+  writeAppLog('ERROR', error.message || 'Échec de démarrage');
   app.quit();
 });
 

@@ -1,32 +1,37 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ApiError, api, downloadUrl, fileToBase64 } from '../api';
+import {
+  ApiError, api, downloadUrl, fileToBase64,
+  type ClientRecord, type DetectedVariable, type DictionaryFieldEntry, type GenerationReport,
+  type PreviewResult, type TemplateRecord,
+} from '../api';
+import type { ExportFormat } from '../../core/types';
 
 const STEPS = ['Modèle', 'Client', 'Informations', 'Variables', 'Aperçu', 'Export'];
 
 export default function GeneratorPage({ notify, initialTemplateId }: { notify: (m: string) => void; initialTemplateId?: string }) {
   const [step, setStep] = useState(1);
-  const [templates, setTemplates] = useState<any[]>([]);
-  const [clients, setClients] = useState<any[]>([]);
-  const [dictionary, setDictionary] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<TemplateRecord[]>([]);
+  const [clients, setClients] = useState<ClientRecord[]>([]);
+  const [dictionary, setDictionary] = useState<DictionaryFieldEntry[]>([]);
   const [templateId, setTemplateId] = useState('');
   const [clientId, setClientId] = useState('');
   const [query, setQuery] = useState('');
-  const [variables, setVariables] = useState<any[]>([]);
+  const [variables, setVariables] = useState<DetectedVariable[]>([]);
   const [values, setValues] = useState<Record<string, string>>({});
-  const [preview, setPreview] = useState<any>(null);
+  const [preview, setPreview] = useState<PreviewResult | null>(null);
   const [page, setPage] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [search, setSearch] = useState('');
   const [compare, setCompare] = useState(false);
-  const [format, setFormat] = useState('pdf');
+  const [format, setFormat] = useState<ExportFormat>('pdf');
   const [fileName, setFileName] = useState('');
   const [destinationDir, setDestinationDir] = useState('');
-  const [report, setReport] = useState<any>(null);
+  const [report, setReport] = useState<GenerationReport | null>(null);
   const [busy, setBusy] = useState(false);
 
   const loadLists = () => {
-    api.templates().then(setTemplates).catch((e) => notify(e.message));
-    api.clients(query).then(setClients).catch((e) => notify(e.message));
+    api.templates().then(setTemplates).catch((e: Error) => notify(e.message));
+    api.clients(query).then(setClients).catch((e: Error) => notify(e.message));
     api.dictionary().then(setDictionary).catch(() => undefined);
   };
   useEffect(loadLists, []);
@@ -60,8 +65,8 @@ export default function GeneratorPage({ notify, initialTemplateId }: { notify: (
         }
       }
       setStep(next);
-    } catch (error: any) {
-      notify(error.message);
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Une erreur est survenue.');
     } finally {
       setBusy(false);
     }
@@ -71,7 +76,7 @@ export default function GeneratorPage({ notify, initialTemplateId }: { notify: (
     const current = preview?.previewPages?.[page];
     if (!current) return [];
     if (!search.trim()) return current.paragraphs;
-    return current.paragraphs.filter((p: any) => p.finalText.toLowerCase().includes(search.toLowerCase()) || p.originalText.toLowerCase().includes(search.toLowerCase()));
+    return current.paragraphs.filter((p) => p.finalText.toLowerCase().includes(search.toLowerCase()) || p.originalText.toLowerCase().includes(search.toLowerCase()));
   }, [preview, page, search]);
 
   const exportNow = async (overwriteConfirmed = false) => {
@@ -90,14 +95,14 @@ export default function GeneratorPage({ notify, initialTemplateId }: { notify: (
       setReport(result.report);
       await downloadUrl(result.downloadUrl, result.contract.fileName);
       notify(`Contrat exporté : ${result.contract.fileName}`);
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof ApiError && error.code === 'FILE_ALREADY_EXISTS') {
         if (confirm(`${error.message}\nÉcraser le fichier existant ?`)) {
           await exportNow(true);
           return;
         }
       }
-      notify(error.message);
+      notify(error instanceof Error ? error.message : 'Une erreur est survenue lors de l’export.');
     } finally {
       setBusy(false);
     }
@@ -234,13 +239,13 @@ export default function GeneratorPage({ notify, initialTemplateId }: { notify: (
           <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}>
             <article className="sheet">
               {preview.previewPages[page]?.headers?.map((h: string) => <div key={h} className="header-line">{h}</div>)}
-              {visibleParagraphs.map((p: any, i: number) => (
+              {visibleParagraphs.map((p, i: number) => (
                 <div key={i} className={compare ? 'split' : ''}>
                   {compare && <p style={{ color: '#64748b' }}>{p.originalText}</p>}
                   <p dangerouslySetInnerHTML={{ __html: p.highlightedHtml }} />
                 </div>
               ))}
-              {preview.previewPages[page]?.tables?.map((table: any, ti: number) => (
+              {preview.previewPages[page]?.tables?.map((table, ti: number) => (
                 <table key={ti} style={{ width: '100%', marginTop: 12, color: '#172033' }}>
                   <tbody>{table.rows.map((row: string[], ri: number) => <tr key={ri}>{row.map((cell, ci) => <td key={ci} style={{ border: '1px solid #cbd5e1' }}>{cell}</td>)}</tr>)}</tbody>
                 </table>
@@ -256,7 +261,7 @@ export default function GeneratorPage({ notify, initialTemplateId }: { notify: (
           <div className="card stack">
             <h3>Exporter</h3>
             <label className="field">Format réellement disponible
-              <select value={format} onChange={(e) => { setFormat(e.target.value); setFileName(fileName.replace(/\.[a-z0-9]+$/i, `.${e.target.value}`)); }}>
+              <select value={format} onChange={(e) => { setFormat(e.target.value as ExportFormat); setFileName(fileName.replace(/\.[a-z0-9]+$/i, `.${e.target.value}`)); }}>
                 {(template?.supportedExports || preview?.supportedExports || ['pdf']).map((item: string) => <option key={item} value={item}>{item.toUpperCase()}</option>)}
               </select>
             </label>

@@ -25,9 +25,9 @@ function idOf(value: string | string[]): string {
 
 function asyncRoute(handler: (req: express.Request, res: express.Response) => Promise<void>) {
   return (req: express.Request, res: express.Response) => {
-    handler(req, res).catch((error: any) => {
-      const message = error?.message || 'Erreur interne.';
-      const code = error?.code;
+    handler(req, res).catch((error: Error & { code?: string; existingPath?: string }) => {
+      const message = error.message || 'Erreur interne.';
+      const code = error.code;
       writeAppLog('ERROR', message);
       const status = code === 'FILE_ALREADY_EXISTS' ? 409 : /introuvable|invalide|obligatoire|non pris en charge|interdit|bloqué|incomplet/i.test(message) ? 400 : 500;
       res.status(status).json({

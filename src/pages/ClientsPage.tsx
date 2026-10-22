@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { api } from '../api';
+import { api, type ClientRecord, type GeneratedContractRecord } from '../api';
 
-const EMPTY = {
+const EMPTY: ClientFormState = {
   civilite: '', nom: '', prenom: '', dateNaissance: '', lieuNaissance: '', adresse: '', complementAdresse: '',
   codePostal: '', ville: '', pays: 'France', telephone: '', email: '', entreprise: '', formeJuridique: '', siret: '',
   tvaIntracommunautaire: '', adresseProfessionnelle: '', representantLegal: '', fonctionRepresentant: '',
@@ -9,15 +9,17 @@ const EMPTY = {
   moyenPaiement: 'Prélèvement SEPA', datePrelevement: '', notes: '', customFields: {} as Record<string, string>,
 };
 
+type ClientFormState = Omit<ClientRecord, 'id' | 'createdAt' | 'updatedAt' | 'signatureClient'> & { id?: string; signatureClient?: string };
+
 export default function ClientsPage({ notify }: { notify: (m: string) => void }) {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<ClientRecord[]>([]);
   const [query, setQuery] = useState('');
-  const [form, setForm] = useState<any>(EMPTY);
-  const [history, setHistory] = useState<any[]>([]);
+  const [form, setForm] = useState<ClientFormState>(EMPTY);
+  const [history, setHistory] = useState<GeneratedContractRecord[]>([]);
   const [customKey, setCustomKey] = useState('');
   const [customValue, setCustomValue] = useState('');
 
-  const load = (q = query) => api.clients(q).then(setItems).catch((e) => notify(e.message));
+  const load = (q = query) => api.clients(q).then(setItems).catch((e: Error) => notify(e.message));
   useEffect(() => { load(''); }, []);
 
   const set = (key: string, value: string) => setForm({ ...form, [key]: value });
@@ -30,8 +32,8 @@ export default function ClientsPage({ notify }: { notify: (m: string) => void })
       setForm(EMPTY);
       setHistory([]);
       load();
-    } catch (error: any) {
-      notify(error.message);
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Enregistrement du client impossible.');
     }
   };
 

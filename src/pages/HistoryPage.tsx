@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { api, downloadUrl } from '../api';
+import { api, downloadUrl, type GeneratedContractRecord } from '../api';
 
 export default function HistoryPage({ notify }: { notify: (m: string) => void }) {
-  const [items, setItems] = useState<any[]>([]);
-  const [open, setOpen] = useState<any>(null);
-  const load = () => api.contracts().then(setItems).catch((e) => notify(e.message));
+  const [items, setItems] = useState<GeneratedContractRecord[]>([]);
+  const [open, setOpen] = useState<GeneratedContractRecord | null>(null);
+  const load = () => api.contracts().then(setItems).catch((e: Error) => notify(e.message));
   useEffect(() => { load(); }, []);
 
   return (
@@ -24,7 +24,7 @@ export default function HistoryPage({ notify }: { notify: (m: string) => void })
                     <td>{item.report?.fidelityReport?.fidelityScore ?? '—'}/100</td>
                     <td>{new Date(item.createdAt).toLocaleString('fr-FR')}</td>
                     <td className="row">
-                      <button className="btn-ghost" onClick={() => downloadUrl(`/api/contracts/${item.id}/download`, item.fileName).catch((e) => notify(e.message))}>Télécharger</button>
+                      <button className="btn-ghost" onClick={() => downloadUrl(`/api/contracts/${item.id}/download`, item.fileName).catch((e: Error) => notify(e.message))}>Télécharger</button>
                       <button className="btn-ghost" onClick={() => setOpen(item)}>Rapport</button>
                       <button className="btn-danger" onClick={() => { if (confirm('Supprimer cette entrée et le fichier généré ?')) api.deleteContract(item.id, true).then(load); }}>Supprimer</button>
                     </td>

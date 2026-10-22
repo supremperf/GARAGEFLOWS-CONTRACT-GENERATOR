@@ -133,3 +133,29 @@ L'erreur `ENOENT ... node_modules\7zip-bin\linux\x64\7za` ne venait **ni** d'une
 - **Non testé** : exécution/installation réelle sous Windows 10 et lancement de `7za.exe` natif (bac Linux sans Wine) ; sous Windows, le nouveau script ne force plus aucun chemin et valide le binaire PE avant build — le test final reste `npm run dist` sur la machine Windows.
 
 Statut de l'addendum : **VALIDÉ AVEC RÉSERVES** (vérification fonctionnelle native Windows non exécutable depuis ce bac).
+
+---
+
+# Addendum (4) — 2026-10-22 — Défilement clavier, zéro vulnérabilité npm, zéro avertissement ESLint
+
+## 1. Défilement clavier (priorité absolue)
+**Cause racine** : `body { overflow: hidden }` + zone principale `.content { overflow-y: auto }` non focalisable et aucun gestionnaire clavier : Chromium/Electron ne défilait aucune zone avec Flèches/PageUp/PageDown/Espace/Home/End lorsque le focus n'était pas dans un champ.
+**Correction** (`src/scroll-utils.ts` nouveau, `src/App.tsx`, `src/styles/global.css`) : gestionnaire clavier global qui route la touche vers la zone réellement active (modale ouverte → conteneur focalisé → zone principale), amplitudes natives (56 px par flèche, 90 % d'écran pour Page/Espace), Home/End aux extrémités ; jamais d'interception dans les champs de saisie, éditeurs, listes déroulantes ni sur l'activation native (Espace/Entrée sur boutons/liens, Tab natif) ; `.content` rendue focalisable (`tabIndex=-1`, `data-scroll-region`) ; anneau `:focus-visible` pour la navigation Tab. **12 tests dédiés** (`tests/scroll.test.ts`) : correspondance des touches, bornes, routage de zones, protection de la saisie — tous verts. Validation dans Electron réel sous Windows : **NON TESTÉ** (bac Linux sans interface graphique), logique testée unitairement.
+
+## 2. Vulnérabilités npm : 12 → 0 (prouvé par `npm audit --json` final : total 0)
+- **pdfjs-dist 3.11.174 → 4.2.67** (HIGH GHSA-wgrm-67xf-hhpq, plage vulnérable ≤ 4.1.392) : build legacy ESM chargé en import dynamique, worker local résolu explicitement (`resolvePdfWorkerSrc`, chemin physique asarUnpack sous Electron), `isEvalSupported:false` conservé, API typée. Version choisie car `engines: node>=18` = compatible runtime Electron 28 (Node 18) ; les versions 4.10+/5+/6 exigent Node ≥ 20 et casseraient l'application packagée. Tests d'extraction multipage + accents verts (`tests/pdf.test.ts`).
+- **xlsx (SheetJS 0.18.5, 2 HIGH sans correctif npm) : package retiré.** Remplacé par un moteur interne `core/spreadsheet/` (CSV RFC 4180, XLSX lecture/écriture OOXML via JSZip — chaînes partagées, formules, dates, ODS via content.xml), gardes zip-bomb conservées, remplacement XLSX toujours par réécriture XML dans le zip d'origine (mise en page préservée). Le package est absent de l'asar final (vérifié : 0 fichier). **Compromis assumé et signalé à l'utilisateur** : le format binaire **XLS (Excel 97-2003)** n'est plus lu ; message explicite de conversion en XLSX/ODS (aucune autre fonctionnalité supprimée : XLSX/ODS/CSV import, remplacement et export préservés et testés, `tests/spreadsheet.test.ts` 10 tests).
+- **sprintf-js / argparse / mammoth** (modérée) : override `mammoth.argparse → ^2.0.1` (argparse 2 n'utilise plus sprintf-js ; seule la CLI mammoth, inutilisée, consommait argparse 1). Extraction DOCX revalidée (E2E).
+- **Chaîne electron-builder** (7 modérées : @electron/get, app-builder-lib, dmg-builder, squirrel, global-agent, roarr, sprintf-js) : electron-builder déjà au plus récent (26.15.3) ; overrides `app-builder-lib.@electron/get → ^4.0.3` et `@electron/get.global-agent → ^4.1.3` (syntaxe imbriquée requise pour la dépendance optionnelle) → global-agent 4 sans roarr ni sprintf-js. NSIS/7-Zip/packaging revalidés par `npm run dist` complet. Aucun `audit fix --force`, aucun downgrade.
+- `engines` ajouté : Node `>=20 <23`, npm `>=10` (décision documentée : chaîne validée sous Node 22 LTS ; Node 24/npm 12 de `npm doctor` non adoptés — génériques, sans bénéfice, et pdfjs 4.2/Electron 28 ciblent Node 18–22).
+
+## 3. ESLint : 115 → 0 erreur, 0 avertissement (sans désactiver de règle)
+104 `no-explicit-any` éliminés par typage réel : DTO complets dans `src/api.ts` (Client/Template/Profile/Subscription/Dashboard/Preview/Export/Settings… miroirs des réponses serveur), états React typés dans les 7 pages et App, `electron/electron-shim.d.ts` réécrit avec les contrats Electron réellement utilisés, champs AcroForm via `PDFTextField` (pdf-lib), erreurs typées `Error & {code, existingPath}`. 11 `no-unused-vars` : imports morts retirés et 4 fonctions PDF réellement mortes supprimées (`escapePdfLiteralString`, `encodeWinAnsiHex`, `purgeAndReplaceInContentStream`, `decodePdfContentToken` — aucune référence externe, vérifié par recherche globale).
+
+## 4. Vérifications exécutées
+- `npm run typecheck` (renderer + electron) : 0 erreur. `npm run lint` : 0/0. `npm test` : **53/53** (6 fichiers : moteur, sécurité, stockage, défilement, tableur, PDF).
+- E2E réel via l'API locale (données isolées `/tmp/gf-e2e2`) : santé, import 10 modèles, profil, client, validation légale bloquant un export incomplet (téléphone manquant), exports **PDF + DOCX + XLSX** générés et relus (variables remplacées, `99,99 €`, formule et clause fixe préservées, aucun `{{}}` résiduel), tableau de bord cohérent, **persistance après redémarrage complet du serveur** (3 contrats, 2 clients, 10 modèles).
+- `npm run dist` : exit 0 → `dist/GarageFlows-Contract-Generator-Setup.exe` = **110 810 488 octets (105,7 Mo)**, exécutable PE x64 vérifié, asar contrôlé (moteur tableur présent, package xlsx absent).
+- **NON TESTÉS** : installation/lancement sous Windows 10 réel et défilement clavier dans Electron packagé (aucun environnement graphique Windows dans ce bac) ; OCR sur document scanné réel (moteur inchangé, déjà validé précédemment).
+
+Statut de l'addendum : **VALIDÉ AVEC RÉSERVES** (deux points Windows natifs non exécutables ici, explicitement listés).

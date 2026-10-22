@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  Bell, Building2, ChevronDown, FilePlus2, Files, History, Home, Layers, LayoutDashboard,
+  Bell, Building2, ChevronDown, FilePlus2, History, Home, Layers, LayoutDashboard,
   LogOut, Search, Settings, User, Users,
 } from 'lucide-react';
-import { api } from './api';
+import { api, type DashboardData, type ProfessionalProfile } from './api';
 import DashboardPage from './pages/DashboardPage';
 import GeneratorPage from './pages/GeneratorPage';
 import TemplatesPage from './pages/TemplatesPage';
@@ -30,8 +30,8 @@ export default function App() {
   const [page, setPage] = useState<PageId>('dashboard');
   const [toast, setToast] = useState('');
   const [online, setOnline] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [profile, setProfile] = useState<ProfessionalProfile | null>(null);
+  const [notifications, setNotifications] = useState<DashboardData['notifications']>([]);
   const [notifOpen, setNotifOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -80,9 +80,9 @@ export default function App() {
         const [clients, templates, contracts] = await Promise.all([api.clients(query), api.templates(), api.contracts()]);
         const q = query.toLowerCase();
         setHits([
-          ...clients.map((c: any) => ({ id: `c-${c.id}`, kind: 'Client', label: `${c.prenom} ${c.nom}`.trim(), detail: c.email || c.ville || '', page: 'clients' as PageId })),
-          ...templates.filter((t: any) => t.name.toLowerCase().includes(q)).map((t: any) => ({ id: `t-${t.id}`, kind: 'Modèle', label: t.name, detail: t.format.toUpperCase(), page: 'generate' as PageId, templateId: t.id })),
-          ...contracts.filter((c: any) => `${c.clientName} ${c.templateName} ${c.fileName}`.toLowerCase().includes(q)).slice(0, 5).map((c: any) => ({ id: `k-${c.id}`, kind: 'Contrat', label: c.fileName, detail: c.clientName, page: 'history' as PageId })),
+          ...clients.map((c) => ({ id: `c-${c.id}`, kind: 'Client', label: `${c.prenom} ${c.nom}`.trim(), detail: c.email || c.ville || '', page: 'clients' as PageId })),
+          ...templates.filter((t) => t.name.toLowerCase().includes(q)).map((t) => ({ id: `t-${t.id}`, kind: 'Modèle', label: t.name, detail: t.format.toUpperCase(), page: 'generate' as PageId, templateId: t.id })),
+          ...contracts.filter((c) => `${c.clientName} ${c.templateName} ${c.fileName}`.toLowerCase().includes(q)).slice(0, 5).map((c) => ({ id: `k-${c.id}`, kind: 'Contrat', label: c.fileName, detail: c.clientName, page: 'history' as PageId })),
         ].slice(0, 9));
         setSearchOpen(true);
       } catch { setHits([]); }
@@ -170,7 +170,7 @@ export default function App() {
           </div>
         </header>
 
-        <section className="content" key={page}>
+        <section className="content" key={page} tabIndex={-1} data-scroll-region="main" aria-label="Contenu de la page">
           {page === 'dashboard' && <DashboardPage onNavigate={setPage} onGenerate={goGenerate} notify={notify} />}
           {page === 'generate' && <GeneratorPage key={generateKey} notify={notify} initialTemplateId={generateTemplateId} />}
           {page === 'templates' && <TemplatesPage notify={notify} />}

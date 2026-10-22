@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowRight, ArrowUpRight, Clock3, FileText, Layers, MoreHorizontal, Plus, Sparkles, Trash2, Download, Eye, Users,
 } from 'lucide-react';
-import { api, downloadUrl } from '../api';
+import { api, downloadUrl, type DashboardData, type GeneratedContractRecord } from '../api';
 import type { PageId } from '../App';
 
 function Sparkline({ points, color = '#4ea2ff', label }: { points: number[]; color?: string; label: string }) {
@@ -43,7 +43,7 @@ export default function DashboardPage({ onNavigate, onGenerate, notify }: {
   onGenerate: (templateId?: string) => void;
   notify: (m: string) => void;
 }) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState('');
   const [menuFor, setMenuFor] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -56,15 +56,15 @@ export default function DashboardPage({ onNavigate, onGenerate, notify }: {
     return () => document.removeEventListener('mousedown', close);
   }, []);
 
-  const usage = useMemo(() => new Map<string, number>((data?.templateUsage || []).map((u: any) => [u.templateId, u.count] as [string, number])), [data]);
+  const usage = useMemo(() => new Map<string, number>((data?.templateUsage || []).map((u) => [u.templateId, u.count] as [string, number])), [data]);
   if (error) return <div className="card stack"><p className="help">Le moteur local n’a pas répondu : {error}</p><button className="btn" onClick={load}>Réessayer</button></div>;
   if (!data) return <div className="card">Chargement des données locales…</div>;
 
   const firstName = data.profile?.prenom || data.profile?.nom || 'à vous';
   const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  const contractsSeries = data.series.map((s: any) => s.contracts);
-  const clientsSeries = data.series.map((s: any) => s.clientsCumulative);
-  const templatesSeries = data.series.map((s: any) => s.templatesCumulative);
+  const contractsSeries = data.series.map((s) => s.contracts);
+  const clientsSeries = data.series.map((s) => s.clientsCumulative);
+  const templatesSeries = data.series.map((s) => s.templatesCumulative);
 
   const stats = [
     { label: 'Contrats générés', value: data.contractsCount, icon: FileText, tone: 'tone-blue', page: 'history' as PageId, series: contractsSeries, trend: <Trend pct={data.trends.contractsPct} suffix="vs mois précédent" /> },
@@ -73,11 +73,11 @@ export default function DashboardPage({ onNavigate, onGenerate, notify }: {
     { label: 'Dernières générations', value: data.contractsLast7Days, icon: Clock3, tone: 'tone-violet', page: 'history' as PageId, series: contractsSeries.slice(-7), trend: <Trend pct={data.trends.contracts7DaysPct} suffix="ces 7 derniers jours" /> },
   ];
 
-  const removeContract = async (item: any) => {
+  const removeContract = async (item: GeneratedContractRecord) => {
     setMenuFor(null);
     if (!confirm(`Supprimer « ${item.fileName} » et le fichier généré ?`)) return;
     try { await api.deleteContract(item.id, true); notify('Contrat supprimé. Les indicateurs sont à jour.'); load(); }
-    catch (e: any) { notify(e.message); }
+    catch (e) { notify(e instanceof Error ? e.message : 'Suppression impossible.'); }
   };
 
   return (
@@ -144,7 +144,7 @@ export default function DashboardPage({ onNavigate, onGenerate, notify }: {
               <table>
                 <thead><tr><th>Contrat</th><th>Client</th><th>Modèle</th><th>Date</th><th>Statut</th><th /></tr></thead>
                 <tbody>
-                  {data.recentContracts.slice(0, 5).map((item: any, i: number) => (
+                  {data.recentContracts.slice(0, 5).map((item) => (
                     <tr key={item.id}>
                       <td><span className="row"><FileText size={15} className="muted-icon" /> {String(item.fileName).replace(/\.[^.]+$/, '').replace(/_/g, ' ')}</span></td>
                       <td>{item.clientName}</td><td>{item.templateName}</td>
@@ -155,7 +155,7 @@ export default function DashboardPage({ onNavigate, onGenerate, notify }: {
                         {menuFor === item.id && (
                           <div className="context-menu">
                             <button onClick={() => { setMenuFor(null); onNavigate('history'); }}><Eye size={14} /> Voir dans l’historique</button>
-                            <button onClick={() => { setMenuFor(null); downloadUrl(`/api/contracts/${item.id}/download`, item.fileName).catch((e) => notify(e.message)); }}><Download size={14} /> Télécharger</button>
+                            <button onClick={() => { setMenuFor(null); downloadUrl(`/api/contracts/${item.id}/download`, item.fileName).catch((e: Error) => notify(e.message)); }}><Download size={14} /> Télécharger</button>
                             <button className="danger" onClick={() => removeContract(item)}><Trash2 size={14} /> Supprimer…</button>
                           </div>
                         )}
@@ -171,7 +171,7 @@ export default function DashboardPage({ onNavigate, onGenerate, notify }: {
         <section className="card">
           <div className="spread"><h3>Mes modèles</h3><button className="btn-ghost small" onClick={() => onNavigate('templates')}>Voir tous les modèles <ArrowRight size={14} /></button></div>
           <div className="tpl-grid">
-            {data.recentTemplates.slice(0, 5).map((tpl: any, i: number) => (
+            {data.recentTemplates.slice(0, 5).map((tpl, i: number) => (
               <button key={tpl.id} className="tpl-card" onClick={() => onGenerate(tpl.id)} title="Générer un contrat avec ce modèle">
                 <span className={`stat-icon ${TEMPLATE_TONES[i % TEMPLATE_TONES.length]}`}><FileText size={17} /></span>
                 <strong>{tpl.name}</strong>

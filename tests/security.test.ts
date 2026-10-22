@@ -1,8 +1,18 @@
+import os from 'node:os';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { assertSafeBackupEntryName, MAX_BACKUP_TOTAL_BYTES } from '../storage/backup/backup-service';
 import { assertZipWithinLimits, withPrototypePollutionGuard } from '../core/document-parser/guards';
 import { validateSafeFilePath, validateImportedFileSecurity } from '../electron/security/path-validator';
 import { validateEmailFormat } from '../core/validation/legal-validator';
+
+describe('isolation des données de test', () => {
+  it('installe un profil temporaire avant les imports et journaux de sécurité', () => {
+    const root = process.env.GARAGEFLOWS_DATA_DIR!;
+    expect(path.dirname(root)).toBe(os.tmpdir());
+    expect(path.basename(root)).toMatch(/^garageflows-unit-/);
+  });
+});
 
 describe('restauration de sauvegarde : chemins', () => {
   const root = '/home/user/GarageFlowsContractGenerator'.replace('user', 'x');
@@ -78,7 +88,6 @@ describe('validateurs métier', () => {
 
 describe('API locale : politique CORS', () => {
   it('refuse une origine web externe et accepte la boucle locale', async () => {
-    process.env.GARAGEFLOWS_DATA_DIR = process.env.GARAGEFLOWS_DATA_DIR || '/tmp/gf-audit-test';
     const { startServer } = await import('../electron/server');
     // Port 0 : port éphémère attribué par le système, aucun conflit possible.
     const { createApp } = await import('../electron/server');

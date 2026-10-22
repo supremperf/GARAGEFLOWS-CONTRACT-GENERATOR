@@ -6,7 +6,8 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { _electron, expect } from '@playwright/test';
-import { readBuildPolicy, projectRoot } from './windows-metadata.mjs';
+import { Data, Resource } from 'resedit';
+import { readBuildPolicy, projectRoot, verifyPeMetadata } from './windows-metadata.mjs';
 
 assert.equal(process.platform, 'win32', 'Run this test on a disposable Windows VM');
 assert.ok(process.env.CI === 'true' || process.env.GARAGEFLOWS_ALLOW_INSTALL_SMOKE === '1', 'Installer smoke requires an explicitly disposable CI/VM');
@@ -51,7 +52,8 @@ try {
   stage('native NSIS installation');
   const page = await launch();
   await page.screenshot({ path: 'test-results/windows-installed.png', fullPage: true });
-  stage('installed Electron window, renderer and official logo');
+  assert.equal(await page.evaluate(() => window.garageflows?.isElectron), true, 'Installed sandboxed preload bridge missing');
+  stage('installed Electron window, renderer, sandboxed preload and official logo');
   report.runtime = await electronApp.evaluate(async ({ app }) => {
     const require = (await import('node:module')).createRequire(`${app.getAppPath()}/package.json`);
     const path = require('node:path');
@@ -86,9 +88,13 @@ try {
     const dirs = require(path.join(app.getAppPath(), 'dist-electron/storage/storage-paths.js')).ensureStorageDirectories();
     fs.writeFileSync(path.join(dirs.generated, 'contrat-test.docx'), generated.buffer);
     fs.writeFileSync(path.join(dirs.signatures, 'signature-test.png'), canvas.toBuffer('image/png'));
+    const windows = require('electron').BrowserWindow.getAllWindows();
+    const main = windows.find(w => w.webContents.getURL().startsWith('http://127.0.0.1:'));
+    const preferences = main.webContents.getLastWebPreferences();
+    if (!preferences.contextIsolation || preferences.nodeIntegration || !preferences.sandbox) throw new Error('Electron security flags changed');
     const branding = path.join(process.resourcesPath, 'branding/icon.ico');
     if (!fs.existsSync(branding)) throw new Error('Missing installed ICO');
-    return { electron: process.versions.electron, node: process.versions.node, arch: process.arch, appVersion: app.getVersion(), canvasPngBytes: canvas.toBuffer('image/png').length, ocrText: ocr.text, positionedPdfItems: parsed.pdfItems.length, appPath: app.getAppPath() };
+    return { electron: process.versions.electron, node: process.versions.node, arch: process.arch, appVersion: app.getVersion(), security: { contextIsolation: preferences.contextIsolation, nodeIntegration: preferences.nodeIntegration, sandbox: preferences.sandbox }, canvasPngBytes: canvas.toBuffer('image/png').length, ocrText: ocr.text, positionedPdfItems: parsed.pdfItems.length, appPath: app.getAppPath() };
   });
   assert.equal(report.runtime.arch, 'x64');
   assert.equal(report.runtime.appVersion, policy.appVersion);
@@ -101,6 +107,16 @@ try {
   await electronApp.close(); electronApp = null;
   const before = snapshot();
   const uninstaller = path.join(destination, fs.readdirSync(destination).find(name => /^Uninstall .*\.exe$/.test(name)));
+  const uninstallInfo = verifyPeMetadata(fs.readFileSync(uninstaller), policy, 'installer', 'installed uninstaller');
+  const official = Data.IconFile.from(fs.readFileSync(path.join(destination, 'resources/branding/icon.ico')));
+  const groups = Resource.IconGroupEntry.fromEntries(uninstallInfo.resources.entries);
+  assert.ok(groups.length, 'Missing uninstaller icon');
+  for (const group of groups) {
+    const icons = group.getIconItemsFromEntries(uninstallInfo.resources.entries);
+    assert.equal(icons.length, official.icons.length);
+    for (const icon of icons) assert.ok(official.icons.some(i => Buffer.from(i.data.bin).equals(Buffer.from(icon.isRaw() ? icon.bin : icon.generate()))), 'Non-official uninstaller icon');
+  }
+  stage('installed uninstaller PE versions and official multi-resolution icon');
   run(uninstaller, ['/S', `_?=${destination}`]);
   assert.ok(!fs.existsSync(executablePath), 'Application executable remains after uninstall');
   assert.deepEqual(snapshot(), before, 'Uninstaller changed isolated business data');

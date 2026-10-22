@@ -16,6 +16,12 @@ async function navigate(page: Page, name: string) {
   await expect(page.locator('.content')).toBeFocused();
   await expect(page.locator('.content')).not.toContainText('Chargement…');
   await expect(page.locator('.content')).not.toContainText('Chargement des données locales…');
+  // Clients/templates/history initially render an empty list, not a loading label.
+  // Wait for the actual fixture before sending End; otherwise its height can grow AFTER the key.
+  if (name === 'Clients') await expect(page.locator('.content')).toContainText('Martin 0');
+  if (['Dashboard', 'Générer un contrat', 'Mes modèles', 'Historique'].includes(name)) await expect(page.locator('.content')).toContainText(longName);
+  if (name === 'Paramètres') await expect(page.locator('.content')).toContainText('Ligne 100');
+
 }
 async function top(page: Page, selector = '.content') { return page.locator(selector).evaluate(e => e.scrollTop); }
 async function noOuterOverflow(page: Page) {
@@ -213,6 +219,16 @@ test('recherche : résultats accessibles par la flèche bas et fermeture par Éc
   await expect(search).toBeFocused();
 });
 
+test('Fin atteint le bas après le chargement réel retardé des clients', async ({ page }) => {
+  await page.route('**/api/clients*', async route => {
+    await new Promise(resolve => setTimeout(resolve, 250));
+    await route.continue(); // real API and data; only transport latency is added by the test
+  });
+  await navigate(page, 'Clients');
+  await page.keyboard.press('End');
+  await expect.poll(() => page.locator('.content').evaluate(e => Math.abs(e.scrollHeight - e.clientHeight - e.scrollTop))).toBeLessThanOrEqual(1);
+});
+
 for (const [width, height] of [[1440, 900], [1100, 720], [900, 650], [600, 720], [375, 667], [320, 568], [1100, 480]]) {
   test(`aucun chevauchement ni débordement des boutons : ${width}×${height}`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height });
@@ -225,8 +241,7 @@ for (const [width, height] of [[1440, 900], [1100, 720], [900, 650], [600, 720],
       if (name === 'Mes modèles' && (width === 1100 || width === 375)) await page.screenshot({ path: testInfo.outputPath(`buttons-templates-${width}.png`) });
       await page.keyboard.press('End');
       const content = page.locator('.content');
-      const metrics = await content.evaluate(e => ({ top: e.scrollTop, max: e.scrollHeight - e.clientHeight }));
-      expect(Math.abs(metrics.max - metrics.top)).toBeLessThanOrEqual(1);
+      await expect.poll(() => content.evaluate(e => Math.abs(e.scrollHeight - e.clientHeight - e.scrollTop)), { message: `End doit atteindre le bas de ${name} à ${width}×${height}` }).toBeLessThanOrEqual(1);
       if (name === 'Paramètres' && width === 1100 && height === 720) await page.screenshot({ path: testInfo.outputPath('keyboard-settings-bottom.png') });
       await cleanButtons(page);
     }

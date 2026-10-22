@@ -20,15 +20,25 @@ jobs:
           node-version: '22.x'
           cache: npm
       - run: node --version; npm --version
-      - run: npm ci
+      - run: npm install
       - run: npm run verify:config
       - run: npm run typecheck
+      - run: npm run build:renderer
+      - run: npm run build:electron
+      - run: npm run build:branding
+      - run: npm run build:examples
+      - run: node scripts/prepare-dist.mjs
+      - run: npm run dist
+      - name: Record native installer metadata
+        run: |
+          $file = Get-Item 'dist/GarageFlows-Contract-Generator-Setup.exe'
+          $hash = (Get-FileHash $file.FullName -Algorithm SHA256).Hash
+          Write-Output "::notice title=Windows installer::$($file.Length) bytes; SHA256=$hash; Windows x64"
       - run: npm run lint
       - run: npm test
+      - run: npm run test:runtime
       - run: npx playwright install chromium
       - run: npm run test:ui
-      - run: npm run dist
-      - run: npm run test:runtime
       - run: npm run test:installed
       - uses: actions/upload-artifact@v4
         if: always()

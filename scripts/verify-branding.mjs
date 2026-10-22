@@ -8,9 +8,9 @@ import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { Data, Resource } from 'resedit';
+import { openDistributionArchive } from './distribution-archive.mjs';
 import { readBuildPolicy, verifyPeMetadata } from './windows-metadata.mjs';
 const require = createRequire(import.meta.url);
-const asar = require('@electron/asar');
 const root = fileURLToPath(new URL('../', import.meta.url));
 const read = (p) => fs.readFileSync(path.join(root, p));
 const policy = readBuildPolicy();
@@ -20,6 +20,10 @@ assert.deepEqual(ico.icons.map((i) => i.width || 256), [16, 24, 32, 48, 64, 128,
 for (const [filename, kind] of [[`${productName}.exe`, 'application'], ['../GarageFlows-Contract-Generator-Setup.exe', 'installer']]) {
   const info = verifyPeMetadata(read(`dist/win-unpacked/${filename}`), policy, kind, filename);
   const res = info.resources;
+  for (const version of info.versions) for (const table of version.strings) {
+    assert.equal(table.values.CompanyName, 'GarageFlows', `${filename}: incorrect CompanyName`);
+    assert.ok(table.values.FileDescription?.startsWith(productName), `${filename}: incorrect FileDescription`);
+  }
   console.log(`[verify] ${filename}: fixed FileVersion=${info.versions[0].fileVersion}, fixed ProductVersion=${info.versions[0].productVersion}, strings=${JSON.stringify(info.versions.map(v => v.strings))}; machine=0x${info.machine.toString(16)} (NSIS stub may be x86; payload is x64).`);
   const groups = Resource.IconGroupEntry.fromEntries(res.entries);
   assert.ok(groups.length > 0, `${filename}: missing icon group`);
@@ -37,7 +41,9 @@ for (const [filename, kind] of [[`${productName}.exe`, 'application'], ['../Gara
 const resources = 'dist/win-unpacked/resources';
 const assets = fs.readdirSync(path.join(root, 'public/branding'));
 const archive = path.join(root, resources, 'app.asar');
-const packageFiles = asar.listPackage(archive);
+const distribution = openDistributionArchive(archive);
+const packageFiles = [...distribution.entries.keys()];
+console.log(`[verify] ASAR readable: ${archive}; ${packageFiles.length} actual relative entries.`);
 const digestBuffer = buffer => createHash('sha256').update(buffer).digest('hex');
 const exeInfo = verifyPeMetadata(read(`dist/win-unpacked/${productName}.exe`), policy, 'application');
 const integrityEntries = exeInfo.resources.entries.filter(e => e.type === 'INTEGRITY' && e.id === 'ELECTRONASAR');
@@ -45,23 +51,44 @@ assert.equal(integrityEntries.length, 1, 'Missing/ambiguous Electron ASAR integr
 const integrity = JSON.parse(Buffer.from(integrityEntries[0].bin).toString('utf8'));
 const appIntegrity = integrity.find(e => e.file.replaceAll('\\', '/') === 'resources/app.asar');
 assert.equal(appIntegrity?.alg, 'SHA256', 'Missing ASAR SHA256 declaration');
-assert.equal(appIntegrity.value, digestBuffer(asar.getRawHeader(archive).headerString), 'Electron ASAR header integrity mismatch');
+assert.equal(appIntegrity.value, digestBuffer(distribution.headerString), 'Electron ASAR header integrity mismatch');
 let verifiedAsarFiles = 0;
 for (const name of packageFiles) {
-  const relative = name.replace(/^\//, '');
-  const entry = asar.statFile(archive, relative, false);
+  const entry = distribution.entries.get(name);
   if (entry.files || entry.link) continue;
   assert.equal(entry.integrity?.algorithm, 'SHA256', `Missing file integrity: ${name}`);
-  assert.equal(digestBuffer(asar.extractFile(archive, relative)), entry.integrity.hash, `ASAR file integrity mismatch: ${name}`);
+  assert.equal(digestBuffer(distribution.read(name)), entry.integrity.hash, `ASAR file integrity mismatch: ${name}`);
   verifiedAsarFiles++;
 }
 console.log(`[verify] PE ASAR header SHA256 and ${verifiedAsarFiles} actual ASAR/unpacked file hashes verified.`);
 for (const tool of ['electron', '@assistant-ai/electron-win32-x64', '@electron/asar', '@electron/rebuild', 'electron-builder', 'typescript', 'eslint', 'vite', 'sharp', 'resedit', '@playwright/test']) {
-  assert.ok(!packageFiles.some(name => name.startsWith(`/node_modules/${tool}/`)), `Build-only dependency shipped: ${tool}`);
+  assert.ok(!packageFiles.some(name => name.startsWith(`node_modules/${tool}/`)), `Build-only dependency shipped: ${tool}`);
 }
+// Validate the packaged runtime, not the build machine's node_modules.
+for (const name of Object.keys(policy.pkg.dependencies)) {
+  const dependency = distribution.runtimePackage(name);
+  const entry = (dependency.manifest.main || 'index.js').replace(/^\.\//, '');
+  const main = [entry, `${entry}.js`, `${entry}.json`, `${entry}.node`, `${entry}/index.js`, `${entry}/index.json`].find(candidate => dependency.has(candidate));
+  assert.ok(main, `Runtime dependency ${name}: missing entry point ${entry} at ${dependency.location}`);
+  dependency.read(main);
+  console.log(`[verify] Runtime dependency ${name}@${dependency.manifest.version}: ${dependency.location}; entry=${main}`);
+}
+const canvas = distribution.runtimePackage('canvas', process.platform === 'win32');
+if (canvas) {
+  verifyNativeAddon(canvas.read('build/Release/canvas.node'), 'canvas/build/Release/canvas.node');
+  console.log(`[verify] canvas@${canvas.manifest.version}: ${canvas.location}; AMD64 binding present.`);
+} else {
+  console.warn('[verify] CROSS-BUILD LIMIT: optional canvas absent. Native Windows autonomy is NOT certified; native Windows verification requires canvas.');
+}
+for (const file of ['package.json', 'dist-electron/electron/main.js', 'dist-electron/electron/preload.js', 'dist-renderer/index.html']) distribution.read(file);
+for (const file of ['branding/icon.ico', 'branding/splash.html', 'tessdata/fra.traineddata', 'examples/contrat-abonnement-garageflows.docx']) {
+  assert.ok(fs.statSync(path.join(root, resources, file)).isFile(), `Installed resource missing: ${file}`);
+}
+// These paths are dynamically imported/read by PDF.js and SQL.js after installation.
+for (const file of ['node_modules/pdfjs-dist/legacy/build/pdf.mjs', 'node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs', 'node_modules/sql.js/dist/sql-wasm.wasm', 'node_modules/tesseract.js/src/worker-script/node/index.js']) distribution.read(file);
 let nativeCount = 0;
 for (const name of packageFiles.filter(name => name.endsWith('.node'))) {
-  const relative = name.replace(/^\//, '');
+  const relative = name;
   const physical = path.join(root, resources, 'app.asar.unpacked', relative);
   assert.ok(fs.existsSync(physical), `Native addon not unpacked: ${name}`);
   verifyNativeAddon(fs.readFileSync(physical), name);
@@ -83,14 +110,14 @@ console.log(`[verify] ${nativeCount} native addon(s) inspected as unpacked Windo
 for (const name of assets) {
   const original = read(`public/branding/${name}`);
   assert.ok(read(`${resources}/branding/${name}`).equals(original), `extraResources: ${name}`);
-  assert.ok(asar.extractFile(archive, `dist-renderer/branding/${name}`).equals(original), `renderer ASAR: ${name}`);
+  assert.ok(distribution.read(`dist-renderer/branding/${name}`).equals(original), `renderer ASAR: ${name}`);
 }
 for (const name of fs.readdirSync(path.join(root, 'dist-renderer/assets'))) {
-  assert.ok(asar.extractFile(archive, `dist-renderer/assets/${name}`).equals(read(`dist-renderer/assets/${name}`)), `Compiled UI mismatch: ${name}`);
+  assert.ok(distribution.read(`dist-renderer/assets/${name}`).equals(read(`dist-renderer/assets/${name}`)), `Compiled UI mismatch: ${name}`);
 }
-assert.equal(JSON.parse(asar.extractFile(archive, 'package.json')).version, appVersion);
+assert.equal(JSON.parse(distribution.read('package.json')).version, appVersion);
 console.log(`[verify] Compiled renderer byte-checked in ASAR; installed version ${appVersion}.`);
-assert.ok(asar.extractFile(archive, 'dist-electron/electron/main.js').toString().includes('com.garageflows.contractgenerator'));
+assert.ok(distribution.read('dist-electron/electron/main.js').toString().includes('com.garageflows.contractgenerator'));
 assert.ok(read('public/branding/logo-full.png').equals(read('resources/branding/logo-official.png')));
 console.log(`[verify] ${assets.length} branding files byte-checked in ASAR and extraResources; original source unchanged.`);
 // Extract the shipped payload as well: win-unpacked alone is not proof of Setup contents.
@@ -99,6 +126,8 @@ try {
   const sevenZip = require('7zip-bin').path7za;
   const result = spawnSync(sevenZip, ['x', '-y', `-o${temp}`,
     path.join(root, 'dist/GarageFlows-Contract-Generator-Setup.exe')], { encoding: 'utf8' });
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
   // p7zip returns warning 1 for the extra NSIS data surrounding its embedded 7z.
   assert.ok(result.status === 0 || result.status === 1, result.stderr || String(result.error));
   const digest = (file) => createHash('sha256').update(fs.readFileSync(file)).digest('hex');

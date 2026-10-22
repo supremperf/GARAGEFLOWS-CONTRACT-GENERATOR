@@ -59,6 +59,7 @@ declare module 'electron' {
     show(): void;
     close(): void;
     webContents: {
+      on(event: 'will-navigate', listener: (event: { preventDefault(): void }, url: string) => void): void;
       setWindowOpenHandler(
         handler: (details: { url: string }) => { action: 'allow' | 'deny'; overrideBrowserWindowOptions?: BrowserWindowOptions }
       ): void;

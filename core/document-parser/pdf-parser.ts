@@ -13,8 +13,8 @@ export function resolvePdfWorkerSrc(): string | undefined {
   try {
     const resolved = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs');
     const unpacked = resolved.replace(/app\.asar([\\/])/, 'app.asar.unpacked$1');
-    if (unpacked !== resolved && fs.existsSync(unpacked)) return unpacked;
-    return resolved;
+    if (unpacked !== resolved && fs.existsSync(unpacked)) return pathToFileURL(unpacked).href;
+    return pathToFileURL(resolved).href;
   } catch {
     return undefined;
   }

@@ -27,7 +27,7 @@ const executablePath = path.join(destination, `${policy.productName}.exe`);
 const installer = path.join(projectRoot, 'dist/GarageFlows-Contract-Generator-Setup.exe');
 fs.mkdirSync('test-results', { recursive: true });
 const report = { host: os.release(), node: process.versions.node, appVersion: policy.appVersion, temporaryRoot: temp, stages: [] };
-const stage = name => { report.stages.push(name); console.log(`[installed] ${name}: PASS`); };
+const stage = name => { report.stages.push(name); console.log(`::notice title=Installed test::${name}: PASS`); };
 function run(file, args) {
   const result = spawnSync(file, args, { timeout: 180000, encoding: 'utf8', windowsVerbatimArguments: true });
   assert.equal(result.status, 0, `${file}: ${result.error || result.stderr || result.stdout}`);
@@ -103,6 +103,9 @@ try {
   await electronApp.close(); electronApp = null;
   run(uninstaller, ['/S', `_?=${destination}`]);
   stage('final isolated uninstall');
+} catch (error) {
+  console.error(`::error title=Installed test::${String(error.stack || error).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A')}`);
+  throw error;
 } finally {
   if (electronApp) await electronApp.close();
   fs.writeFileSync('test-results/windows-installed.json', JSON.stringify(report, null, 2));

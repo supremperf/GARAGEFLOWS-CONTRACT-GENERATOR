@@ -48,7 +48,7 @@ describe('Identité officielle GarageFlows', () => {
   });
 
   it('partage la même identité entre Electron, Windows, NSIS et les ressources installées', () => {
-    const config = read('electron-builder.yml').toString();
+    const config = read('electron-builder.yml').toString().replace(/\r\n/g, '\n');
     for (const key of ['icon', 'installerIcon', 'uninstallerIcon', 'installerHeaderIcon']) {
       expect(config).toContain(`${key}: public/branding/icon.ico`);
     }

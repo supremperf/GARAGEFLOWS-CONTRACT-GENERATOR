@@ -1,6 +1,8 @@
 import path from 'path';
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import { startServer } from './server';
+import { isTrustedWindowUrl, isSafeExternalUrl, assertTrustedIpcSender } from './security/window-policy';
+import { validateSafeFilePath } from './security/path-validator';
 import { writeAppLog } from './security/logger';
 
 const isDev = process.env.GARAGEFLOWS_DEV === '1';
@@ -10,6 +12,7 @@ const brandingDir = app.isPackaged
   : path.join(__dirname, '../../public/branding');
 const windowIcon = path.join(brandingDir, process.platform === 'win32' ? 'icon.ico' : 'icon.png');
 let splash: BrowserWindow | null = null;
+let trustedOrigin: string | null = null;
 if (process.platform === 'win32') app.setAppUserModelId('com.garageflows.contractgenerator');
 
 function createWindow(port: number) {
@@ -43,11 +46,14 @@ function createWindow(port: number) {
     app.quit();
   });
   win.webContents.setWindowOpenHandler(({ url: target }: { url: string }) => {
-    if (target.startsWith('http://127.0.0.1') || target.startsWith('http://localhost')) {
-      return { action: 'allow', overrideBrowserWindowOptions: { icon: windowIcon, autoHideMenuBar: true } };
+    if (isTrustedWindowUrl(target, trustedOrigin)) {
+      return { action: 'allow', overrideBrowserWindowOptions: { icon: windowIcon, autoHideMenuBar: true, webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true } } };
     }
-    shell.openExternal(target);
+    if (isSafeExternalUrl(target)) void shell.openExternal(target).catch((error: Error) => writeAppLog('WARN', error.message));
     return { action: 'deny' };
+  });
+  win.webContents.on('will-navigate', (event: { preventDefault(): void }, target: string) => {
+    if (!isTrustedWindowUrl(target, trustedOrigin)) event.preventDefault();
   });
   return win;
 }
@@ -62,6 +68,8 @@ app.whenReady().then(async () => {
   await splash.loadFile(path.join(brandingDir, 'splash.html'));
 
   ipcMain.handle('dialog:open-file', async (_event: unknown, filters?: { name: string; extensions: string[] }[]) => {
+    assertTrustedIpcSender(_event, trustedOrigin);
+    if (filters && (!Array.isArray(filters) || filters.length > 20 || filters.some(f => !f || typeof f.name !== 'string' || !Array.isArray(f.extensions) || f.extensions.length > 100 || f.extensions.some(ext => typeof ext !== 'string' || !/^(?:[a-z0-9]{1,12}|\*)$/i.test(ext))))) throw new Error('Filtres de fichiers invalides.');
     const result = await dialog.showOpenDialog({
       properties: ['openFile'],
       filters: filters && filters.length > 0 ? filters : [{ name: 'Documents', extensions: ['pdf', 'docx', 'doc', 'odt', 'rtf', 'txt', 'html', 'xlsx', 'xls', 'ods', 'csv', 'pptx', 'png', 'jpg', 'jpeg', 'tiff'] }],
@@ -69,15 +77,16 @@ app.whenReady().then(async () => {
     return result.canceled ? null : result.filePaths[0];
   });
 
-  ipcMain.handle('dialog:open-directory', async () => {
+  ipcMain.handle('dialog:open-directory', async (_event: unknown) => {
+    assertTrustedIpcSender(_event, trustedOrigin);
     const result = await dialog.showOpenDialog({ properties: ['openDirectory', 'createDirectory'] });
     return result.canceled ? null : result.filePaths[0];
   });
 
   ipcMain.handle('shell:show-item', async (_event: unknown, filePath: string) => {
-    if (typeof filePath === 'string' && filePath.length > 0) {
-      shell.showItemInFolder(filePath);
-    }
+    assertTrustedIpcSender(_event, trustedOrigin);
+    if (typeof filePath !== 'string' || !path.isAbsolute(filePath)) throw new Error('Chemin absolu requis.');
+    shell.showItemInFolder(validateSafeFilePath(filePath));
   });
 
   const staticDir = path.join(__dirname, '../../dist-renderer');
@@ -111,6 +120,7 @@ app.whenReady().then(async () => {
     },
   });
 
+  trustedOrigin = isDev ? 'http://127.0.0.1:5173' : `http://127.0.0.1:${port}`;
   createWindow(typeof port === 'number' ? port : 3001);
   writeAppLog('INFO', 'Application démarrée');
 }).catch((error: Error) => {

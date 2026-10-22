@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { PDFDocument, StandardFonts } from 'pdf-lib';
-import { parsePdfBuffer } from '../core/document-parser/pdf-parser';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { parsePdfBuffer, resolvePdfWorkerSrc } from '../core/document-parser/pdf-parser';
 
 async function makePdf(pages: string[][]): Promise<Buffer> {
   const doc = await PDFDocument.create();
@@ -20,10 +22,17 @@ describe('pdfjs-dist v4 — extraction PDF (GHSA-wgrm-67xf-hhpq corrigée)', () 
     ]);
     const out = await parsePdfBuffer(buf, 'test-multipage.pdf');
     expect(out.pageCount).toBe(2);
-    expect(out.fullText).toContain('{{CLIENT_NOM}}');
+    expect(out.fullText, JSON.stringify(out.warnings)).toContain('{{CLIENT_NOM}}');
     expect(out.fullText).toContain('Deuxieme page');
     expect(out.pdfItems.length).toBeGreaterThanOrEqual(6);
     expect(out.isScanned).toBe(false);
+  });
+
+  it('fournit une URL file: native au worker, y compris sous Windows', () => {
+    const worker = resolvePdfWorkerSrc();
+    expect(worker).toBeDefined();
+    expect(new URL(worker!).protocol).toBe('file:');
+    expect(fs.existsSync(fileURLToPath(worker!))).toBe(true);
   });
 
   it('rejette un fichier qui n’est pas un PDF', async () => {

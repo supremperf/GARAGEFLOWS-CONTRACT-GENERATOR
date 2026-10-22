@@ -38,6 +38,7 @@ async function main() {
   assert.match(recognized.text, /MARTIN/i, `Real local OCR failed: ${JSON.stringify(recognized.warnings)}`);
   const invalid = await runLocalOcrOnBuffer(Buffer.from('not a decodable image'), 'invalid.png');
   assert.ok(invalid.warnings.some(w => w.includes('Avertissement moteur Tesseract local')), 'Worker rejection must be returned as a warning');
+  await require('./test-ocr-worker-runtime.cjs')(root, temp, image);
   const corruptPdf = await runLocalOcrOnBuffer(Buffer.from('%PDF-1.4\ninvalid\n%%EOF'), 'corrupt.pdf');
   assert.ok(corruptPdf.warnings.some(w => w.includes('rasterisation')));
   console.log(`[runtime] Node ${process.versions.node}: compiled ESM PDF.js + positions, SQLite/WASM persistence, DOCX generation, real offline image OCR, worker rejection/termination, raw-PDF guard: PASS. Isolated data only.`);

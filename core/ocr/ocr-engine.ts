@@ -1,10 +1,11 @@
 import fs from 'fs';
 import path from 'path';
+import { ocrLanguageDirectories } from './local-language-fetch';
 
 /** Keep the logical ASAR parent tree: physical unpacked workers cannot resolve packed dependencies. */
 export function resolveOcrWorkerPath(resolve: (specifier: string) => string = require.resolve): string {
   // Electron 28 supports worker_threads entry points inside ASAR, including unpacked entries.
-  return resolve('tesseract.js/src/worker-script/node/index.js');
+  return resolve('./tesseract-worker');
 }
 
 export interface OcrResult {
@@ -27,11 +28,7 @@ export async function runLocalOcrOnBuffer(
   const extractedSegments: string[] = [];
 
   // 1. Vérifier si un fichier de données Tesseract local (.traineddata) est présent dans le dossier local
-  const langCandidates = [
-    path.resolve(process.cwd(), 'resources', 'tessdata'),
-    path.resolve(__dirname, '../../../resources/tessdata'),
-    path.join((process as NodeJS.Process & { resourcesPath?: string }).resourcesPath || '', 'tessdata'),
-  ];
+  const langCandidates = ocrLanguageDirectories(__dirname, process.cwd(), (process as NodeJS.Process & { resourcesPath?: string }).resourcesPath);
   const localLangPath = langCandidates.find(
     (dir) => fs.existsSync(path.join(dir, 'fra.traineddata')) || fs.existsSync(path.join(dir, 'eng.traineddata'))
   );

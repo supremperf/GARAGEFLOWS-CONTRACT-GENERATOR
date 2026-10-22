@@ -80,7 +80,7 @@ if (canvas) {
 } else {
   console.warn('[verify] CROSS-BUILD LIMIT: optional canvas absent. Native Windows autonomy is NOT certified; native Windows verification requires canvas.');
 }
-for (const file of ['package.json', 'dist-electron/electron/main.js', 'dist-electron/electron/preload.js', 'dist-renderer/index.html']) distribution.read(file);
+for (const file of ['package.json', 'dist-electron/electron/main.js', 'dist-electron/electron/preload.js', 'dist-electron/core/ocr/tesseract-worker.js', 'dist-electron/core/ocr/local-language-fetch.js', 'dist-renderer/index.html']) distribution.read(file);
 for (const file of ['branding/icon.ico', 'branding/splash.html', 'tessdata/fra.traineddata', 'examples/contrat-abonnement-garageflows.docx']) {
   assert.ok(fs.statSync(path.join(root, resources, file)).isFile(), `Installed resource missing: ${file}`);
 }

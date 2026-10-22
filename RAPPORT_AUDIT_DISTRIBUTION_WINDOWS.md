@@ -1,5 +1,7 @@
 # Audit et correction de la distribution Windows x64
 
+> **Rapport historique.** Pour les corrections ASAR Windows, les nouveaux tests natifs et le statut actuel, consulter [RAPPORT_CORRECTION_ASAR_WINDOWS.md](RAPPORT_CORRECTION_ASAR_WINDOWS.md). Les états de jobs et empreintes ci-dessous sont ceux de l’audit précédent.
+
 **Date : 22 octobre 2026.** Code construit : `3158e64`, branche `arena/04806916-garageflows-contract-generator`. PR : [#4](https://github.com/supremperf/GARAGEFLOWS-CONTRACT-GENERATOR/pull/4), ouverte, non fusionnée.
 
 ## Verdict de portée

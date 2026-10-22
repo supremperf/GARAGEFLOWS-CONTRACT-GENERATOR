@@ -11,14 +11,17 @@
     "build:renderer": "vite build",
     "build:electron": "tsc -p tsconfig.electron.json",
     "build:examples": "tsx scripts/generate-examples.ts",
-    "build": "npm run build:branding && npm run build:examples && npm run build:renderer && npm run build:electron",
+    "build": "npm run verify:config && npm run build:branding && npm run build:examples && npm run build:renderer && npm run build:electron",
     "dist": "npm run build && node scripts/prepare-dist.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.electron.json --noEmit",
     "lint": "eslint .",
     "build:branding": "node scripts/generate-icon.mjs",
     "verify:dist": "node scripts/verify-branding.mjs",
-    "test:ui": "playwright test"
+    "test:ui": "playwright test",
+    "verify:config": "node scripts/verify-config.mjs",
+    "test:runtime": "node scripts/test-compiled-runtime.cjs",
+    "test:installed": "node scripts/test-windows-installer.mjs"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -48,7 +51,9 @@
     "electron": "npm:@assistant-ai/electron-win32-x64@28.3.3",
     "electron-builder": "26.15.3",
     "eslint": "^9.39.5",
+    "js-yaml": "^4.3.2",
     "resedit": "^3.1.0",
+    "semver": "^7.7.3",
     "sharp": "^0.35.5",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
@@ -73,7 +78,7 @@
     "@rollup/rollup-win32-x64-msvc": "4.65.0"
   },
   "engines": {
-    "node": ">=20 <23",
+    "node": ">=22.12.0 <23",
     "npm": ">=10"
   }
 }

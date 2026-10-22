@@ -31,28 +31,42 @@ export async function runLocalOcrOnBuffer(
   );
   const hasLocalTrainedData = Boolean(localLangPath);
 
-  if (hasLocalTrainedData) {
+  // Tesseract/Leptonica accepts images, never raw PDF bytes. Keep the existing
+  // structural PDF fallback and report its limitation rather than crashing a worker.
+  const isPdf = buffer.subarray(0, 1024).toString('ascii').includes('%PDF-');
+  if (isPdf) warnings.push('OCR PDF : une rasterisation en images est nécessaire ; extraction structurelle locale uniquement.');
+  if (hasLocalTrainedData && !isPdf) {
     try {
       const Tesseract = await import('tesseract.js');
       const lang = fs.existsSync(path.join(localLangPath as string, 'fra.traineddata')) ? 'fra' : 'eng';
+      const resolvedWorker = require.resolve('tesseract.js/src/worker-script/node/index.js');
+      const unpackedWorker = resolvedWorker.replace(/app\.asar([\\/])/, 'app.asar.unpacked$1');
       const worker = await Tesseract.createWorker(lang, 1, {
         langPath: localLangPath,
         gzip: false,
+        workerPath: fs.existsSync(unpackedWorker) ? unpackedWorker : resolvedWorker,
+        cacheMethod: 'none',
+        // The job promise rejects below; avoid Tesseract's second, uncaught throw.
+        errorHandler: () => undefined,
       });
-      const ret = await worker.recognize(buffer);
-      await worker.terminate();
+      let ret;
+      try {
+        ret = await worker.recognize(buffer);
+      } finally {
+        await worker.terminate();
+      }
       const text = ret.data.text.trim();
       if (text) {
         return {
           text,
-          confidence: (ret.data.confidence || 80) / 100,
+          confidence: (ret.data.confidence ?? 80) / 100,
           engine: 'tesseract-local',
           lines: text.split(/\r?\n/).filter((l) => l.trim().length > 0),
           warnings,
         };
       }
     } catch (err) {
-      warnings.push(`Avertissement moteur Tesseract local : ${err instanceof Error ? err.message : 'bascule sur extracteur local'}`);
+      warnings.push(`Avertissement moteur Tesseract local : ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 

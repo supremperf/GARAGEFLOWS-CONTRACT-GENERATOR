@@ -1,0 +1,37 @@
+name: Windows x64 distribution and installed runtime
+on:
+  workflow_dispatch:
+  push:
+    branches: [arena/04806916-garageflows-contract-generator]
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: npm
+      - run: node --version; npm --version
+      - run: npm ci
+      - run: npm run verify:config
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npx playwright install chromium
+      - run: npm run test:ui
+      - run: npm run dist
+      - run: npm run test:runtime
+      - run: npm run test:installed
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-x64-installer-and-proof
+          path: |
+            dist/GarageFlows-Contract-Generator-Setup.exe
+            test-results/
+            playwright-report/
+          retention-days: 7

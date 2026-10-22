@@ -8,6 +8,8 @@ module.exports = async function afterPack(context) {
   if (context.electronPlatformName !== 'win32') return;
   // Electron's demo app is unused (our app.asar is the entry point).
   fs.rmSync(path.join(context.appOutDir, 'resources/default_app.asar'), { force: true });
+  const { readBuildPolicy, verifyPeMetadata } = await import('./windows-metadata.mjs');
+  const policy = readBuildPolicy(context.packager.projectDir);
   const { NtExecutable, NtExecutableResource, Data, Resource } = await import('resedit');
   const exePath = path.join(context.appOutDir, `${context.packager.appInfo.productFilename}.exe`);
   const ico = Data.IconFile.from(fs.readFileSync(path.join(context.packager.projectDir, 'public/branding/icon.ico')));
@@ -25,8 +27,11 @@ module.exports = async function afterPack(context) {
       InternalName: context.packager.appInfo.productFilename,
       LegalCopyright: 'Copyright © 2026 GarageFlows',
     });
-    vi.setFileVersion(context.packager.appInfo.version);
-    vi.setProductVersion(context.packager.appInfo.version);
+    vi.setFileVersion(policy.windowsVersion);
+    vi.setProductVersion(policy.windowsVersion);
+    for (const translation of vi.getAllLanguagesForStringValues()) {
+      vi.setStringValues(translation, { ProductName: policy.productName, ProductVersion: policy.appVersion, FileVersion: policy.windowsVersion });
+    }
     vi.outputToResourceEntries(resources.entries);
   }
   resources.outputResource(exe);
@@ -37,5 +42,6 @@ module.exports = async function afterPack(context) {
   if (images.length !== ico.icons.length || !images.every((entry) => ico.icons.some((item) => Buffer.from(item.data.bin).equals(Buffer.from(entry.bin))))) {
     throw new Error('PE icon verification failed');
   }
+  verifyPeMetadata(fs.readFileSync(exePath), policy, 'application', exePath);
   console.log('[branding] Official multi-resolution icon embedded and read back from Windows executable.');
 };

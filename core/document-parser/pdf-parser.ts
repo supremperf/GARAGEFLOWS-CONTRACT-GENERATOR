@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { pathToFileURL } from 'node:url';
 import { PDFDocument } from 'pdf-lib';
 import { DocumentParagraph, DocumentTable, PdfTextItem } from '../types';
 import { runLocalOcrOnBuffer } from '../ocr/ocr-engine';
@@ -141,7 +142,10 @@ export async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<
     ensurePdfJsPolyfills();
     // pdfjs-dist v4 (ESM) : import dynamique ; le worker local est résolu
     // explicitement (requis même en mode « fake worker » intégré).
-    const pdfjsLib = (await import('pdfjs-dist/legacy/build/pdf.mjs')) as unknown as PdfJsLib;
+    const resolved = require.resolve('pdfjs-dist/legacy/build/pdf.mjs');
+    const unpacked = resolved.replace(/app\.asar([\\/])/, 'app.asar.unpacked$1');
+    const libraryPath = unpacked !== resolved && fs.existsSync(unpacked) ? unpacked : resolved;
+    const pdfjsLib = (await import(pathToFileURL(libraryPath).href)) as unknown as PdfJsLib;
     if (pdfjsLib.GlobalWorkerOptions) {
       const workerSrc = resolvePdfWorkerSrc();
       if (workerSrc) pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;

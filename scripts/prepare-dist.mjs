@@ -16,6 +16,8 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import { readBuildPolicy } from './windows-metadata.mjs';
+const policy = readBuildPolicy();
 
 const root = process.cwd();
 const isWindows = process.platform === 'win32';
@@ -37,10 +39,7 @@ function info(message) {
 info(`Plateforme de compilation détectée : ${process.platform} / ${arch} (cible : Windows x64)`);
 
 // ---------- Contrôles préalables (fail-fast) ----------
-const nodeMajor = Number(process.versions.node.split('.')[0]);
-if (!Number.isFinite(nodeMajor) || nodeMajor < 18) {
-  fail(`Version de Node.js incompatible (${process.versions.node}). Node.js 18 ou plus récent est requis (22 recommandé).`);
-}
+execSync('npm run verify:config', { stdio: 'inherit' });
 ok(`Node.js ${process.versions.node}`);
 
 if (arch !== 'x64' && isWindows) {
@@ -155,9 +154,8 @@ info('Lancement d’electron-builder (Windows x64, NSIS)…');
 // false dans electron-builder.yml). Hors Windows (compilation croisée),
 // rcedit exigerait Wine : after-pack.cjs intègre et vérifie les ressources PE
 // sans Wine avant la compression NSIS.
-const builderArgs = isWindows
-  ? 'npx electron-builder --win --x64 --publish never'
-  : 'npx electron-builder --win --x64 --publish never -c.win.signAndEditExecutable=false';
+// Explicit derived versions prevent BUILD_NUMBER/CI counters from changing release metadata.
+const builderArgs = `npx electron-builder --config electron-builder.yml --win --x64 --publish never -c.buildVersion=${policy.windowsVersion} -c.buildNumber=0${isWindows ? '' : ' -c.win.signAndEditExecutable=false'}`;
 execSync(builderArgs, { stdio: 'inherit', env });
 
 // ---------- Vérifications post-compilation ----------

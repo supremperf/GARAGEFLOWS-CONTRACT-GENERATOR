@@ -94,7 +94,7 @@ async function closeInstalledApp() {
   }
 }
 async function launch() {
-  electronApp = await _electron.launch({ executablePath, cwd: temp, env: { ...process.env, PATH: path.join(process.env.SystemRoot || 'C:\\Windows', 'System32'), NODE_PATH: '', NODE_OPTIONS: '', GARAGEFLOWS_DATA_DIR: profile }, timeout: 60000 });
+  electronApp = await _electron.launch({ executablePath, cwd: temp, args: [`--user-data-dir=${path.join(temp, 'ChromiumProfile')}`], env: { ...process.env, PATH: path.join(process.env.SystemRoot || 'C:\\Windows', 'System32'), NODE_PATH: '', NODE_OPTIONS: '', GARAGEFLOWS_DATA_DIR: profile }, timeout: 60000 });
   applicationPid = await electronApp.evaluate(() => process.pid);
   electronApp.process().stderr.on('data', chunk => { report.lastNativeStderr = `${report.lastNativeStderr || ''}${chunk}`.slice(-16000); });
   electronApp.on('console', message => {
@@ -109,7 +109,8 @@ async function launch() {
   const page = electronApp.windows().find(p => p.url().startsWith('http://127.0.0.1:'));
   await expect(page.locator('.app-shell')).toBeVisible();
   await expect(page.locator('img.brand-emblem').first()).toBeVisible();
-  assert.ok(await page.locator('img.brand-emblem').first().evaluate(img => img.naturalWidth > 0), 'Installed logo not loaded');
+  // Visibility precedes image decoding, especially on the second launch after reinstall.
+  await expect.poll(() => page.locator('img.brand-emblem').first().evaluate(img => img.complete && img.naturalWidth > 0), { timeout: 15000, message: 'Installed logo not loaded' }).toBe(true);
   return page;
 }
 try {

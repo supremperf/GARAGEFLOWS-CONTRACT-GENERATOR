@@ -23,7 +23,7 @@ import { detectDocumentVariables } from '../variable-detection/detector';
 
 const SUPPORTED_FORMATS = new Set<DocumentFormat>([
   'pdf', 'docx', 'doc', 'odt', 'rtf', 'txt', 'html',
-  'xlsx', 'xls', 'ods', 'csv', 'pptx',
+  'xlsx', 'ods', 'csv', 'pptx',
   'png', 'jpg', 'jpeg', 'tiff',
 ]);
 
@@ -31,7 +31,7 @@ export function detectFormatFromFileName(fileName: string): DocumentFormat {
   const ext = path.extname(fileName).toLowerCase().replace('.', '') as DocumentFormat;
   if (!SUPPORTED_FORMATS.has(ext)) {
     throw new Error(
-      `Format de fichier non pris en charge (.${ext || 'inconnu'}). Formats acceptés : PDF, DOCX, DOC, ODT, RTF, TXT, HTML, XLSX, XLS, ODS, CSV, PPTX, PNG, JPG, JPEG, TIFF.`
+      `Format de fichier non pris en charge (.${ext || 'inconnu'}). Formats acceptés : PDF, DOCX, DOC, ODT, RTF, TXT, HTML, XLSX, ODS, CSV, PPTX, PNG, JPG, JPEG, TIFF (le XLS Excel 97-2003 n'est plus accepté pour des raisons de sécurité : convertissez-le en XLSX).`
     );
   }
   return ext;
@@ -81,7 +81,6 @@ export function getSupportedExportsForFormat(
         supportLevel: 'full',
         limitations: [],
       };
-    case 'xls':
     case 'ods':
       return {
         supportedExports: ['xlsx', 'pdf', 'csv', 'html'],
@@ -95,6 +94,15 @@ export function getSupportedExportsForFormat(
         supportedExports: ['csv', 'xlsx', 'pdf', 'txt'],
         supportLevel: 'full',
         limitations: [],
+      };
+    case 'xls':
+      // Format binaire Excel 97-2003 : rejeté à l'import (voir parseSpreadsheetBuffer).
+      return {
+        supportedExports: [],
+        supportLevel: 'partial',
+        limitations: [
+          'Le format .XLS (Excel 97-2003) n’est plus accepté pour des raisons de sécurité. Convertissez le fichier en .XLSX ou .ODS.',
+        ],
       };
     case 'rtf':
       return {
@@ -305,8 +313,8 @@ export async function parseDocumentBuffer(
       }));
       warnings.push(...ocrRes.warnings);
     }
-  } catch (err: any) {
-    throw new Error(`Document illisible ou corrompu (${fileName}) : ${err?.message || 'Erreur interne de lecture'}`);
+  } catch (err) {
+    throw new Error(`Document illisible ou corrompu (${fileName}) : ${err instanceof Error ? err.message : 'Erreur interne de lecture'}`, { cause: err });
   }
 
   const detectedVariables = detectDocumentVariables({

@@ -233,6 +233,7 @@ export interface ClientRecord {
 }
 
 export interface ProfessionalProfile {
+  tvaRegime?: '' | 'vat' | 'franchise';
   // Identité
   nom: string;
   prenom: string;
@@ -348,6 +349,7 @@ export interface GenerationReport {
 }
 
 export interface GeneratedContractRecord {
+  professionalContractId?: string;
   id: string;
   templateId: string;
   templateName: string;

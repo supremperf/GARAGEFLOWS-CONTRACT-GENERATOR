@@ -1,6 +1,24 @@
+import fs from 'fs';
+import { pathToFileURL } from 'node:url';
 import { PDFDocument } from 'pdf-lib';
 import { DocumentParagraph, DocumentTable, PdfTextItem } from '../types';
 import { runLocalOcrOnBuffer } from '../ocr/ocr-engine';
+
+/**
+ * Résout le chemin réel du worker pdfjs-dist v4 (requis même en mode
+ * « fake worker » local). Sous Electron packagé, pdfjs-dist est décompressé
+ * hors asar (asarUnpack) : on privilégie ce chemin physique s'il existe.
+ */
+export function resolvePdfWorkerSrc(): string | undefined {
+  try {
+    const resolved = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs');
+    const unpacked = resolved.replace(/app\.asar([\\/])/, 'app.asar.unpacked$1');
+    if (unpacked !== resolved && fs.existsSync(unpacked)) return pathToFileURL(unpacked).href;
+    return pathToFileURL(resolved).href;
+  } catch {
+    return undefined;
+  }
+}
 
 export interface PdfParseOutput {
   fullText: string;
@@ -20,8 +38,33 @@ export interface PdfParseOutput {
   warnings: string[];
 }
 
+/** Formes minimales des API pdfjs-dist v4 réellement utilisées (extraction de texte). */
+export interface PdfJsTextItem {
+  str: string;
+  transform?: number[];
+  width?: number;
+  height?: number;
+  fontName?: string;
+}
+export interface PdfJsPage {
+  getViewport(options: { scale: number }): { width: number; height: number };
+  getTextContent(): Promise<{ items: PdfJsTextItem[] }>;
+}
+export interface PdfJsDocument {
+  numPages: number;
+  getPage(pageNumber: number): Promise<PdfJsPage>;
+}
+export interface PdfJsLib {
+  GlobalWorkerOptions?: { workerSrc: string };
+  getDocument(params: Record<string, unknown>): { promise: Promise<PdfJsDocument> };
+}
+
+export function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : 'lecture partielle';
+}
+
 function ensurePdfJsPolyfills(): void {
-  const g = globalThis as any;
+  const g = globalThis as { DOMMatrix?: unknown; Path2D?: unknown; ImageData?: unknown };
   if (!g.DOMMatrix) {
     g.DOMMatrix = class DOMMatrix {
       a = 1;
@@ -90,23 +133,26 @@ export async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<
       hasImages = true;
       imageCount = imgMatches.length;
     }
-  } catch (err: any) {
-    warnings.push(`Avertissement structure PDF : ${err?.message || 'lecture partielle'}`);
+  } catch (err) {
+    warnings.push(`Avertissement structure PDF : ${errorMessage(err)}`);
   }
 
   // 2. Extraction positionnelle haute précision via pdfjs-dist
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     ensurePdfJsPolyfills();
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
+    // pdfjs-dist v4 (ESM) : import dynamique ; le worker local est résolu
+    // explicitement (requis même en mode « fake worker » intégré).
+    const resolved = require.resolve('pdfjs-dist/legacy/build/pdf.mjs');
+    const unpacked = resolved.replace(/app\.asar([\\/])/, 'app.asar.unpacked$1');
+    const libraryPath = unpacked !== resolved && fs.existsSync(unpacked) ? unpacked : resolved;
+    const pdfjsLib = (await import(pathToFileURL(libraryPath).href)) as unknown as PdfJsLib;
     if (pdfjsLib.GlobalWorkerOptions) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+      const workerSrc = resolvePdfWorkerSrc();
+      if (workerSrc) pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
     }
     const uint8 = new Uint8Array(buffer);
     const loadingTask = pdfjsLib.getDocument({
       data: uint8,
-      disableWorker: true,
       useSystemFonts: true,
       disableFontFace: true,
       verbosity: 0,
@@ -134,7 +180,7 @@ export async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<
         fontName: string;
       }[] = [];
 
-      for (const item of textContent.items as any[]) {
+      for (const item of textContent.items) {
         if (typeof item.str !== 'string' || item.str.length === 0) continue;
         const tx = item.transform || [12, 0, 0, 12, 0, 0];
         const fontSize = Math.max(6, Math.round(Math.hypot(tx[0], tx[1]) * 10) / 10);
@@ -183,8 +229,8 @@ export async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<
         });
       }
     }
-  } catch (err: any) {
-    warnings.push(`Avertissement extraction PDF.js : ${err?.message || 'fallback flux PDF'}`);
+  } catch (err) {
+    warnings.push(`Avertissement extraction PDF.js : ${errorMessage(err) === 'lecture partielle' ? 'fallback flux PDF' : errorMessage(err)}`);
   }
 
   // 3. Regroupement des PdfTextItem en lignes et paragraphes
@@ -245,7 +291,7 @@ export async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<
 
   // 4. Détection de PDF scanné (aucun texte vectoriel ou moins de 15 caractères)
   const totalExtractedChars = paragraphs.reduce((acc, p) => acc + p.text.length, 0) + headers.join('').length;
-  let isScanned = totalExtractedChars < 15 && pdfFormFields.length === 0;
+  const isScanned = totalExtractedChars < 15 && pdfFormFields.length === 0;
   let ocrApplied = false;
   let ocrConfidence: number | undefined;
 

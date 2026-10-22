@@ -15,6 +15,7 @@ const CUSTOM_VARS_KEY = 'custom_variables';
 
 export function getDefaultProfessionalProfile(): ProfessionalProfile {
   return {
+    tvaRegime: '',
     nom: '',
     prenom: '',
     nomCommercial: 'GarageFlows',

@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { ensureStorageDirectories } from '../../storage/storage-paths';
 import { ExportFormat } from '../types';
 import { parseDocumentFile } from '../document-parser';
 
@@ -60,6 +61,7 @@ export async function exportGeneratedDocumentToDisk(params: {
   }
 
   // Nettoyer le nom de fichier contre toute traversée de répertoire
+  // eslint-disable-next-line no-control-regex -- retrait volontaire des caractères de contrôle du nom de fichier
   const safeFileName = path.basename(fileName).replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
   const finalFileName = safeFileName.toLowerCase().endsWith(`.${format}`)
     ? safeFileName
@@ -69,7 +71,13 @@ export async function exportGeneratedDocumentToDisk(params: {
     fs.mkdirSync(destinationDir, { recursive: true });
   }
 
+  const protectedDir = path.join(ensureStorageDirectories().generated, 'professional');
+  const canonicalDestination = fs.realpathSync(destinationDir);
+  const canonicalProtected = fs.existsSync(protectedDir) ? fs.realpathSync(protectedDir) : path.resolve(protectedDir);
+  const protectedRelative = path.relative(canonicalProtected, canonicalDestination);
+  if (protectedRelative === '' || (!protectedRelative.startsWith('..') && !path.isAbsolute(protectedRelative))) throw new Error('Export générique interdit dans le stockage contractuel protégé.');
   const targetPath = path.resolve(destinationDir, finalFileName);
+  if (fs.existsSync(targetPath) && fs.lstatSync(targetPath).isSymbolicLink()) throw new Error('Écrasement d’un lien symbolique interdit.');
   const resolvedDir = path.resolve(destinationDir);
   if (!targetPath.startsWith(resolvedDir)) {
     throw new Error('Chemin de destination invalide ou tentative de traversée de dossier bloquée.');
@@ -77,9 +85,12 @@ export async function exportGeneratedDocumentToDisk(params: {
 
   // Protection stricte contre l'écrasement silencieux (Section 14 & Règle 13)
   if (fs.existsSync(targetPath) && !overwriteConfirmed) {
-    const err = new Error(`FILE_ALREADY_EXISTS: Un fichier nommé « ${finalFileName} » existe déjà dans ce dossier.`);
-    (err as any).code = 'FILE_ALREADY_EXISTS';
-    (err as any).existingPath = targetPath;
+    const err = new Error(`FILE_ALREADY_EXISTS: Un fichier nommé « ${finalFileName} » existe déjà dans ce dossier.`) as Error & {
+      code: string;
+      existingPath: string;
+    };
+    err.code = 'FILE_ALREADY_EXISTS';
+    err.existingPath = targetPath;
     throw err;
   }
 

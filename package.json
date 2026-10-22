@@ -1,6 +1,6 @@
 {
   "name": "garageflows-contract-generator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "GarageFlows Contract Generator — Logiciel professionnel autonome de génération automatique de contrats d'abonnement GarageFlows",
   "author": "GarageFlows",
   "license": "UNLICENSED",
@@ -11,10 +11,17 @@
     "build:renderer": "vite build",
     "build:electron": "tsc -p tsconfig.electron.json",
     "build:examples": "tsx scripts/generate-examples.ts",
-    "build": "npm run build:examples && npm run build:renderer && npm run build:electron",
+    "build": "npm run verify:config && npm run build:branding && npm run build:examples && npm run build:renderer && npm run build:electron",
     "dist": "npm run build && node scripts/prepare-dist.mjs",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit && tsc -p tsconfig.electron.json --noEmit"
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.electron.json --noEmit",
+    "lint": "eslint .",
+    "build:branding": "node scripts/generate-icon.mjs",
+    "verify:dist": "node scripts/verify-branding.mjs",
+    "test:ui": "playwright test",
+    "verify:config": "node scripts/verify-config.mjs",
+    "test:runtime": "node scripts/test-compiled-runtime.cjs",
+    "test:installed": "node scripts/test-windows-installer.mjs"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -23,15 +30,17 @@
     "lucide-react": "^0.468.0",
     "mammoth": "^1.8.0",
     "pdf-lib": "^1.17.1",
-    "pdfjs-dist": "3.11.174",
+    "pdfjs-dist": "^4.2.67",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "sql.js": "^1.12.0",
-    "tesseract.js": "^5.1.1",
-    "xlsx": "^0.18.5"
+    "tesseract.js": "^5.1.1"
   },
   "devDependencies": {
     "@assistant-ai/electron-win32-x64": "28.3.3",
+    "@electron/asar": "^3.4.1",
+    "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.64.1",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.2",
@@ -41,9 +50,35 @@
     "7zip-bin": "5.2.0",
     "electron": "npm:@assistant-ai/electron-win32-x64@28.3.3",
     "electron-builder": "26.15.3",
+    "eslint": "^9.39.5",
+    "js-yaml": "^4.3.2",
+    "resedit": "^3.1.0",
+    "semver": "^7.7.3",
+    "sharp": "^0.35.5",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
+    "typescript-eslint": "^8.72.0",
     "vite": "^6.0.5",
-    "vitest": "^2.1.8"
+    "vitest": "^4.1.11"
+  },
+  "overrides": {
+    "mammoth": {
+      "argparse": "^2.0.1"
+    },
+    "app-builder-lib": {
+      "@electron/get": {
+        "global-agent": "^4.1.3",
+        ".": "^4.0.3"
+      }
+    },
+    "canvas": "^3.2.3"
+  },
+  "optionalDependencies": {
+    "@esbuild/win32-x64": "0.25.12",
+    "@rollup/rollup-win32-x64-msvc": "4.65.0"
+  },
+  "engines": {
+    "node": ">=22.12.0 <23",
+    "npm": ">=10"
   }
 }

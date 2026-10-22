@@ -1,0 +1,104 @@
+name: Windows x64 distribution and installed runtime
+on:
+  workflow_dispatch:
+    inputs:
+      installerRunId:
+        description: 'Optional: test an existing native installer without rebuilding (diagnostics only)'
+        type: string
+        required: false
+        default: ''
+      expectedSha256:
+        description: 'Required for reused installers: exact SHA256 recorded by the source run'
+        type: string
+        required: false
+        default: ''
+  push:
+    branches: [arena/04806916-garageflows-contract-generator]
+    paths-ignore: ['**.md']
+concurrency:
+  group: windows-distribution-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+  actions: read
+jobs:
+  windows:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.installerRunId == '' }}
+    runs-on: windows-2022
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: npm
+      - run: node --version; npm --version
+      - run: npm install
+      - run: npm run verify:config
+      - run: npm run typecheck
+      - run: npm run build:renderer
+      - run: npm run build:electron
+      - run: npm run build:branding
+      - run: npm run build:examples
+      - run: node scripts/prepare-dist.mjs
+      - run: npm run dist
+      - name: Record native installer metadata
+        run: |
+          $file = Get-Item 'dist/GarageFlows-Contract-Generator-Setup.exe'
+          $hash = (Get-FileHash $file.FullName -Algorithm SHA256).Hash
+          Write-Output "::notice title=Windows installer::$($file.Length) bytes; SHA256=$hash; Windows x64"
+      - run: npm run lint
+      - run: npm test
+      - run: npm run test:runtime
+      - run: node scripts/test-professional-runtime.cjs
+      - id: browser
+        run: npx playwright install chromium
+      - run: npm run test:ui -- --reporter=list,github
+      - run: npm run test:installed
+        if: ${{ !cancelled() && steps.browser.outcome == 'success' }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-x64-installer-and-proof
+          path: |
+            dist/GarageFlows-Contract-Generator-Setup.exe
+            test-results/
+            playwright-report/
+          retention-days: 7
+  installed-artifact:
+    name: Existing native installer diagnostics (no rebuild)
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.installerRunId != '' }}
+    runs-on: windows-2022
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: npm
+      - run: npm install
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-x64-installer-and-proof
+          run-id: ${{ inputs.installerRunId }}
+          github-token: ${{ github.token }}
+          path: reused-installer
+      - name: Validate immutable installer identity
+        env:
+          EXPECTED_SHA256: ${{ inputs.expectedSha256 }}
+        run: |
+          if ($env:EXPECTED_SHA256 -notmatch '^[A-Fa-f0-9]{64}$') { throw 'Provide the exact source installer SHA256' }
+          New-Item -ItemType Directory -Force 'dist' | Out-Null
+          Copy-Item 'reused-installer/dist/GarageFlows-Contract-Generator-Setup.exe' 'dist/GarageFlows-Contract-Generator-Setup.exe'
+          $hash = (Get-FileHash 'dist/GarageFlows-Contract-Generator-Setup.exe' -Algorithm SHA256).Hash
+          if ($hash -ne $env:EXPECTED_SHA256) { throw "Installer SHA256 mismatch: $hash" }
+          Write-Output "::notice title=Reused native installer::SHA256=$hash (no compilation in this diagnostic job)"
+      - run: npm run test:installed
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-installed-artifact-proof
+          path: |
+            dist/GarageFlows-Contract-Generator-Setup.exe
+            test-results/
+          retention-days: 7

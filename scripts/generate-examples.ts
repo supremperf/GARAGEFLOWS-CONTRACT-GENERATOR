@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-import * as XLSX from 'xlsx';
+import { buildXlsxBufferFromTables } from '../core/document-converter/converter';
+import { serializeCsv } from '../core/spreadsheet/csv';
 import { buildDocxBufferFromStructuredContent, buildHtmlBufferFromStructuredContent, buildOdtBufferFromStructuredContent, buildRtfBufferFromStructuredContent, buildTxtBufferFromStructuredContent } from '../core/document-converter/converter';
 
 const outDir = path.join(process.cwd(), 'examples');
@@ -88,7 +89,6 @@ function writeLegacyTxt() {
 }
 
 function writeXlsx() {
-  const wb = XLSX.utils.book_new();
   const rows = [
     ['Champ', 'Valeur', 'Contrôle'],
     ['Client', '{{CLIENT_NOM}}', ''],
@@ -98,12 +98,8 @@ function writeXlsx() {
     ['Total formule', '', '=B5'],
     ['Mention fixe', 'Ne pas modifier cette clause de tableau.', ''],
   ];
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = [{ wch: 22 }, { wch: 36 }, { wch: 18 }];
-  XLSX.utils.book_append_sheet(wb, ws, 'Contrat');
-  const csv = XLSX.utils.sheet_to_csv(ws);
-  fs.writeFileSync(path.join(outDir, 'fiche-abonnement.xlsx'), XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }));
-  fs.writeFileSync(path.join(outDir, 'fiche-abonnement.csv'), csv, 'utf8');
+  fs.writeFileSync(path.join(outDir, 'fiche-abonnement.xlsx'), buildXlsxBufferFromTables([rows], []));
+  fs.writeFileSync(path.join(outDir, 'fiche-abonnement.csv'), serializeCsv(rows), 'utf8');
 }
 
 function crc32(buf: Buffer): number {
@@ -136,6 +132,7 @@ function writeScannedPng() {
       raw[i] = 245; raw[i + 1] = 245; raw[i + 2] = 242; raw[i + 3] = 255;
     }
   }
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- import paresseux volontaire dans ce script de génération
   const { deflateSync } = require('zlib') as typeof import('zlib');
   const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
   const ihdr = Buffer.alloc(13);

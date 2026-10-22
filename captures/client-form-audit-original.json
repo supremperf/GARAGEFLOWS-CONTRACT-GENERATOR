@@ -1,0 +1,488 @@
+[
+  {
+    "width": 1440,
+    "label": "Civilité—M.Mme",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Nom*",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Prénom",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Date de naissance",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Lieu de naissance",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Téléphone",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "E-mail",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Adresse",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Complément",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Code postal",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Ville",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Pays",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Entreprise",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Forme juridique",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "SIRET",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "TVA intracommunautaire",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Représentant légal",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Fonction",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Abonnement",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Prix TTC",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Fréquence",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Moyen de paiement",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Date de souscription",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Date de début",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Notes",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Champ personnalisé",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 1440,
+    "label": "Valeur",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Civilité—M.Mme",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Nom*",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Prénom",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Date de naissance",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Lieu de naissance",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Téléphone",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "E-mail",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Adresse",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Complément",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Code postal",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Ville",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Pays",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Entreprise",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Forme juridique",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "SIRET",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "TVA intracommunautaire",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Représentant légal",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Fonction",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Abonnement",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Prix TTC",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Fréquence",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Moyen de paiement",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Date de souscription",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Date de début",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Notes",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Champ personnalisé",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 900,
+    "label": "Valeur",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Civilité—M.Mme",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Nom*",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Prénom",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Date de naissance",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Lieu de naissance",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Téléphone",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "E-mail",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Adresse",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Complément",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Code postal",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Ville",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Pays",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Entreprise",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Forme juridique",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "SIRET",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "TVA intracommunautaire",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Représentant légal",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Fonction",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Abonnement",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Prix TTC",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Fréquence",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Moyen de paiement",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Date de souscription",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Date de début",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Notes",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Champ personnalisé",
+    "focus": true,
+    "pointer": "auto"
+  },
+  {
+    "width": 375,
+    "label": "Valeur",
+    "focus": true,
+    "pointer": "auto"
+  }
+]

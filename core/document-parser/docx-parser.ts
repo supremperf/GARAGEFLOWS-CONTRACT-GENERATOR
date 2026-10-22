@@ -1,4 +1,5 @@
 import JSZip from 'jszip';
+import { assertZipWithinLimits } from './guards';
 import { DocumentParagraph, DocumentTable } from '../types';
 
 export interface DocxParseOutput {
@@ -51,6 +52,7 @@ function extractTextFromParagraphXml(pXml: string): string {
 
 export async function parseDocxBuffer(buffer: Buffer): Promise<DocxParseOutput> {
   const zip = await JSZip.loadAsync(buffer);
+  assertZipWithinLimits(zip, 'Document DOCX');
   const docFile = zip.file('word/document.xml');
   if (!docFile) {
     throw new Error('Archive DOCX invalide : fichier word/document.xml introuvable.');

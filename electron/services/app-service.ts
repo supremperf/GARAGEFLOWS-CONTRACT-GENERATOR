@@ -24,40 +24,71 @@ import {
   saveSubscriptionConfig,
 } from '../../storage/repositories/profile-repo';
 import {
+  countClients,
   createClient,
   deleteClient,
   getClient,
+  listClientDates,
   listClients,
+  listRecentClientSummaries,
   updateClient,
 } from '../../storage/repositories/client-repo';
 import {
+  countTemplates,
   deleteTemplate,
   duplicateTemplate,
   getTemplate,
   importTemplate,
+  listTemplateDates,
   listTemplates,
+  listTemplatesLight,
   readTemplateBuffer,
   reanalyzeTemplate,
   touchTemplateUsed,
   updateTemplate,
 } from '../../storage/repositories/template-repo';
 import {
+  countContracts,
   deleteContract,
   getContract,
+  listContractTimeline,
   listContracts,
   listContractsByClient,
+  listContractsLight,
   saveContract,
 } from '../../storage/repositories/contract-repo';
 import { exportBackupArchive, getStorageSummary, importBackupArchive } from '../../storage/backup/backup-service';
 import { readRecentLogs, writeAppLog } from '../security/logger';
 import { validateImportedFileSecurity, validateSafeFilePath } from '../security/path-validator';
 
+export type PageHint = 'history' | 'templates' | 'clients';
+
 export interface DashboardData {
   contractsCount: number;
   clientsCount: number;
   templatesCount: number;
+  contractsLast7Days: number;
+  trends: {
+    contractsPct: number | null;
+    clientsPct: number | null;
+    templatesAdded30Days: number;
+    contracts7DaysPct: number | null;
+  };
+  series: { date: string; contracts: number; clientsCumulative: number; templatesCumulative: number }[];
+  templateUsage: { templateId: string; count: number }[];
+  notifications: { id: string; kind: 'contract' | 'template' | 'client'; title: string; detail: string; date: string; page: PageHint }[];
+  profile: { prenom: string; nom: string; entreprise: string };
   recentContracts: Awaited<ReturnType<typeof listContracts>>;
   recentTemplates: Awaited<ReturnType<typeof listTemplates>>;
+}
+
+function pctChange(current: number, previous: number): number | null {
+  if (previous === 0) return current === 0 ? 0 : null;
+  return Math.round(((current - previous) / previous) * 100);
+}
+function inRange(iso: string, from: number, to: number): boolean {
+  const t = new Date(iso).getTime();
+  return t >= from && t < to;
 }
 
 function valuesFromContext(params: {
@@ -88,13 +119,78 @@ function valuesFromContext(params: {
 }
 
 export async function getDashboard(): Promise<DashboardData> {
-  const [contracts, clients, templates] = await Promise.all([listContracts(), listClients(), listTemplates()]);
+  // Indicateurs calculés par requêtes légères : aucun rapport/valeur de contrat
+  // n'est désérialisé pour afficher des compteurs (performance constante).
+  const [contractsCount, clientsCount, templatesCount, timeline, cDates, tDates, recentContracts, recentTemplates, recentClients, profile] =
+    await Promise.all([
+      countContracts(),
+      countClients(),
+      countTemplates(),
+      listContractTimeline(),
+      listClientDates(),
+      listTemplateDates(),
+      listContractsLight(6),
+      listTemplatesLight(6),
+      listRecentClientSummaries(10),
+      getProfessionalProfile(),
+    ]);
+  const now = Date.now();
+  const DAY = 86_400_000;
+  const d30 = now - 30 * DAY, d60 = now - 60 * DAY, d7 = now - 7 * DAY, d14 = now - 14 * DAY;
+  const count = (dates: string[], from: number, to: number) => dates.filter((d) => inRange(d, from, to)).length;
+  const contractDates = timeline.map((t) => t.createdAt);
+
+  const series = Array.from({ length: 14 }, (_, i) => {
+    const start = new Date(now - (13 - i) * DAY);
+    start.setHours(0, 0, 0, 0);
+    const end = start.getTime() + DAY;
+    return {
+      date: start.toISOString(),
+      contracts: count(contractDates, start.getTime(), end),
+      clientsCumulative: cDates.filter((d) => new Date(d).getTime() < end).length,
+      templatesCumulative: tDates.filter((d) => new Date(d).getTime() < end).length,
+    };
+  });
+
+  const usage = new Map<string, number>();
+  for (const t of timeline) usage.set(t.templateId, (usage.get(t.templateId) || 0) + 1);
+
+  const notifications: DashboardData['notifications'] = [
+    ...recentContracts.map((c) => ({
+      id: `contract-${c.id}`, kind: 'contract' as const,
+      title: 'Contrat généré', detail: `${c.templateName} — ${c.clientName}`, date: c.createdAt, page: 'history' as PageHint,
+    })),
+    ...recentTemplates.map((t) => ({
+      id: `template-${t.id}`, kind: 'template' as const,
+      title: 'Modèle disponible', detail: `${t.name} (${t.format.toUpperCase()})`, date: t.updatedAt, page: 'templates' as PageHint,
+    })),
+    ...recentClients.map((c) => ({
+      id: `client-${c.id}`, kind: 'client' as const,
+      title: 'Client enregistré', detail: `${c.prenom} ${c.nom}`.trim(), date: c.createdAt, page: 'clients' as PageHint,
+    })),
+  ].sort((a, b) => +new Date(b.date) - +new Date(a.date)).slice(0, 8);
+
   return {
-    contractsCount: contracts.length,
-    clientsCount: clients.length,
-    templatesCount: templates.length,
-    recentContracts: contracts.slice(0, 6),
-    recentTemplates: templates.slice(0, 6),
+    contractsCount,
+    clientsCount,
+    templatesCount,
+    contractsLast7Days: count(contractDates, d7, now + DAY),
+    trends: {
+      contractsPct: pctChange(count(contractDates, d30, now + DAY), count(contractDates, d60, d30)),
+      clientsPct: pctChange(count(cDates, d30, now + DAY), count(cDates, d60, d30)),
+      templatesAdded30Days: count(tDates, d30, now + DAY),
+      contracts7DaysPct: pctChange(count(contractDates, d7, now + DAY), count(contractDates, d14, d7)),
+    },
+    series,
+    templateUsage: [...usage.entries()].map(([templateId, count]) => ({ templateId, count })),
+    notifications,
+    profile: {
+      prenom: profile.prenom || '',
+      nom: profile.nom || '',
+      entreprise: profile.nomCommercial || profile.entrepriseNom || 'GarageFlows',
+    },
+    recentContracts: recentContracts as unknown as DashboardData['recentContracts'],
+    recentTemplates: recentTemplates as unknown as DashboardData['recentTemplates'],
   };
 }
 
@@ -323,8 +419,8 @@ export async function importBundledExamples(): Promise<{ imported: string[]; ski
       });
       knownHashes.add(hash);
       imported.push(fileName);
-    } catch (error: any) {
-      skipped.push(`${fileName} (${error?.message || 'ignoré'})`);
+    } catch (error) {
+      skipped.push(`${fileName} (${error instanceof Error ? error.message : 'ignoré'})`);
     }
   }
   return { imported, skipped };

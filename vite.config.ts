@@ -12,11 +12,14 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:3001',
-        changeOrigin: true,
+        changeOrigin: false,
+        headers: process.env.GARAGEFLOWS_LOCAL_CAPABILITY ? { 'X-GF-Local-Capability': process.env.GARAGEFLOWS_LOCAL_CAPABILITY } : {},
       },
     },
   },
   build: {
+    // Electron 28 embeds Chromium 120 (PDF.js ESM uses top-level await).
+    target: 'chrome120',
     outDir: 'dist-renderer',
     emptyOutDir: true,
   },

@@ -1,35 +1,43 @@
+import ProfessionalContractWizard from './ProfessionalContractWizard';
+import FilePicker from '../FilePicker';
 import { useEffect, useMemo, useState } from 'react';
-import { ApiError, api, downloadUrl, fileToBase64 } from '../api';
+import {
+  ApiError, api, downloadUrl, fileToBase64,
+  type ClientRecord, type DetectedVariable, type DictionaryFieldEntry, type GenerationReport,
+  type PreviewResult, type TemplateRecord,
+} from '../api';
+import type { ExportFormat } from '../../core/types';
 
 const STEPS = ['Modèle', 'Client', 'Informations', 'Variables', 'Aperçu', 'Export'];
 
-export default function GeneratorPage({ notify }: { notify: (m: string) => void }) {
+function GenericGeneratorPage({ notify, initialTemplateId }: { notify: (m: string) => void; initialTemplateId?: string }) {
   const [step, setStep] = useState(1);
-  const [templates, setTemplates] = useState<any[]>([]);
-  const [clients, setClients] = useState<any[]>([]);
-  const [dictionary, setDictionary] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<TemplateRecord[]>([]);
+  const [clients, setClients] = useState<ClientRecord[]>([]);
+  const [dictionary, setDictionary] = useState<DictionaryFieldEntry[]>([]);
   const [templateId, setTemplateId] = useState('');
   const [clientId, setClientId] = useState('');
   const [query, setQuery] = useState('');
-  const [variables, setVariables] = useState<any[]>([]);
+  const [variables, setVariables] = useState<DetectedVariable[]>([]);
   const [values, setValues] = useState<Record<string, string>>({});
-  const [preview, setPreview] = useState<any>(null);
+  const [preview, setPreview] = useState<PreviewResult | null>(null);
   const [page, setPage] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [search, setSearch] = useState('');
   const [compare, setCompare] = useState(false);
-  const [format, setFormat] = useState('pdf');
+  const [format, setFormat] = useState<ExportFormat>('pdf');
   const [fileName, setFileName] = useState('');
   const [destinationDir, setDestinationDir] = useState('');
-  const [report, setReport] = useState<any>(null);
+  const [report, setReport] = useState<GenerationReport | null>(null);
   const [busy, setBusy] = useState(false);
 
   const loadLists = () => {
-    api.templates().then(setTemplates).catch((e) => notify(e.message));
-    api.clients(query).then(setClients).catch((e) => notify(e.message));
+    api.templates().then(setTemplates).catch((e: Error) => notify(e.message));
+    api.clients(query).then(setClients).catch((e: Error) => notify(e.message));
     api.dictionary().then(setDictionary).catch(() => undefined);
   };
   useEffect(loadLists, []);
+  useEffect(() => { if (initialTemplateId) setTemplateId(initialTemplateId); }, [initialTemplateId]);
 
   const template = templates.find((item) => item.id === templateId);
 
@@ -59,8 +67,8 @@ export default function GeneratorPage({ notify }: { notify: (m: string) => void 
         }
       }
       setStep(next);
-    } catch (error: any) {
-      notify(error.message);
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Une erreur est survenue.');
     } finally {
       setBusy(false);
     }
@@ -70,7 +78,7 @@ export default function GeneratorPage({ notify }: { notify: (m: string) => void 
     const current = preview?.previewPages?.[page];
     if (!current) return [];
     if (!search.trim()) return current.paragraphs;
-    return current.paragraphs.filter((p: any) => p.finalText.toLowerCase().includes(search.toLowerCase()) || p.originalText.toLowerCase().includes(search.toLowerCase()));
+    return current.paragraphs.filter((p) => p.finalText.toLowerCase().includes(search.toLowerCase()) || p.originalText.toLowerCase().includes(search.toLowerCase()));
   }, [preview, page, search]);
 
   const exportNow = async (overwriteConfirmed = false) => {
@@ -89,14 +97,14 @@ export default function GeneratorPage({ notify }: { notify: (m: string) => void 
       setReport(result.report);
       await downloadUrl(result.downloadUrl, result.contract.fileName);
       notify(`Contrat exporté : ${result.contract.fileName}`);
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof ApiError && error.code === 'FILE_ALREADY_EXISTS') {
         if (confirm(`${error.message}\nÉcraser le fichier existant ?`)) {
           await exportNow(true);
           return;
         }
       }
-      notify(error.message);
+      notify(error instanceof Error ? error.message : 'Une erreur est survenue lors de l’export.');
     } finally {
       setBusy(false);
     }
@@ -114,8 +122,7 @@ export default function GeneratorPage({ notify }: { notify: (m: string) => void 
         <section className="stack">
           <div className="spread">
             <p className="help">Choisissez un modèle déjà analysé. Le fichier original reste intact.</p>
-            <label className="btn">Importer
-              <input hidden type="file" onChange={async (e) => {
+            <FilePicker className="btn" onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
                 const base64 = await fileToBase64(file);
@@ -123,8 +130,7 @@ export default function GeneratorPage({ notify }: { notify: (m: string) => void 
                 notify('Modèle importé.');
                 await loadLists();
                 setTemplateId(created.id);
-              }} />
-            </label>
+              }}>Importer</FilePicker>
           </div>
           <div className="template-grid">
             {templates.map((tpl) => (
@@ -184,7 +190,7 @@ export default function GeneratorPage({ notify }: { notify: (m: string) => void 
         <section className="card stack">
           <h3>Variables détectées</h3>
           <p className="help">Chaque XXX est une variable distincte. Un identifiant {'{{CLIENT_NOM}}'} répété partage la même valeur.</p>
-          <div className="table-wrap">
+          <div className="table-wrap" tabIndex={0} role="region" aria-label="Variables du contrat">
             <table>
               <thead><tr><th>Détectée</th><th>Champ</th><th>Valeur</th><th>Occ.</th><th>Confiance</th><th>Lieu</th><th>OK</th></tr></thead>
               <tbody>
@@ -224,29 +230,29 @@ export default function GeneratorPage({ notify }: { notify: (m: string) => void 
             <button className="btn-ghost" onClick={() => setPage(Math.max(0, page - 1))}>Page précédente</button>
             <span>Page {page + 1} / {preview.previewPages.length}</span>
             <button className="btn-ghost" onClick={() => setPage(Math.min(preview.previewPages.length - 1, page + 1))}>Page suivante</button>
-            <button className="btn-ghost" onClick={() => setZoom(Math.max(0.7, zoom - 0.1))}>−</button>
-            <button className="btn-ghost" onClick={() => setZoom(Math.min(1.4, zoom + 0.1))}>+</button>
+            <button className="btn-ghost" aria-label="Réduire le zoom" onClick={() => setZoom(Math.max(0.7, zoom - 0.1))}>−</button>
+            <button className="btn-ghost" aria-label="Augmenter le zoom" onClick={() => setZoom(Math.min(1.4, zoom + 0.1))}>+</button>
             <input className="input" placeholder="Rechercher dans l’aperçu" value={search} onChange={(e) => setSearch(e.target.value)} />
             <button className="btn-ghost" onClick={() => setCompare(!compare)}>{compare ? 'Masquer la comparaison' : 'Comparer au modèle'}</button>
           </div>
           <div className="help">Surlignage vert : valeur insérée. Surlignage rose : champ encore vide. Cet aperçu reflète le texte qui sera exporté.</div>
-          <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}>
+          <div className="preview-viewport" tabIndex={0} aria-label="Aperçu du contrat"><div className="preview-zoom" style={{ zoom }}>
             <article className="sheet">
               {preview.previewPages[page]?.headers?.map((h: string) => <div key={h} className="header-line">{h}</div>)}
-              {visibleParagraphs.map((p: any, i: number) => (
+              {visibleParagraphs.map((p, i: number) => (
                 <div key={i} className={compare ? 'split' : ''}>
                   {compare && <p style={{ color: '#64748b' }}>{p.originalText}</p>}
                   <p dangerouslySetInnerHTML={{ __html: p.highlightedHtml }} />
                 </div>
               ))}
-              {preview.previewPages[page]?.tables?.map((table: any, ti: number) => (
+              {preview.previewPages[page]?.tables?.map((table, ti: number) => (
                 <table key={ti} style={{ width: '100%', marginTop: 12, color: '#172033' }}>
                   <tbody>{table.rows.map((row: string[], ri: number) => <tr key={ri}>{row.map((cell, ci) => <td key={ci} style={{ border: '1px solid #cbd5e1' }}>{cell}</td>)}</tr>)}</tbody>
                 </table>
               ))}
               {preview.previewPages[page]?.footers?.map((f: string) => <div key={f} className="footer-line">{f}</div>)}
             </article>
-          </div>
+          </div></div>
         </section>
       )}
 
@@ -255,7 +261,7 @@ export default function GeneratorPage({ notify }: { notify: (m: string) => void 
           <div className="card stack">
             <h3>Exporter</h3>
             <label className="field">Format réellement disponible
-              <select value={format} onChange={(e) => { setFormat(e.target.value); setFileName(fileName.replace(/\.[a-z0-9]+$/i, `.${e.target.value}`)); }}>
+              <select value={format} onChange={(e) => { setFormat(e.target.value as ExportFormat); setFileName(fileName.replace(/\.[a-z0-9]+$/i, `.${e.target.value}`)); }}>
                 {(template?.supportedExports || preview?.supportedExports || ['pdf']).map((item: string) => <option key={item} value={item}>{item.toUpperCase()}</option>)}
               </select>
             </label>
@@ -292,4 +298,16 @@ export default function GeneratorPage({ notify }: { notify: (m: string) => void 
       </div>
     </div>
   );
+}
+
+
+export default function GeneratorPage(props: { notify: (m: string) => void; initialTemplateId?: string; initialClientId?: string; initialContractId?: string }) {
+  const [professional, setProfessional] = useState(Boolean(props.initialClientId || props.initialContractId));
+  return <div className="stack">
+    <div className="row" role="group" aria-label="Type de génération">
+      <button className={professional ? 'btn-ghost' : 'btn'} aria-pressed={!professional} onClick={() => setProfessional(false)}>Modèles importés</button>
+      <button className={professional ? 'btn' : 'btn-ghost'} aria-pressed={professional} onClick={() => setProfessional(true)}>Contrat professionnel GarageFlows</button>
+    </div>
+    {professional ? <ProfessionalContractWizard notify={props.notify} initialClientId={props.initialClientId} initialContractId={props.initialContractId} /> : <GenericGeneratorPage notify={props.notify} initialTemplateId={props.initialTemplateId} />}
+  </div>;
 }

@@ -1,9 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "lib": ["ES2022"],
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "lib": [
+      "ES2022"
+    ],
     "outDir": "dist-electron",
     "rootDir": ".",
     "strict": true,
@@ -13,5 +15,9 @@
     "resolveJsonModule": true,
     "declaration": false
   },
-  "include": ["electron/**/*", "core/**/*", "storage/**/*"]
+  "include": [
+    "electron/**/*",
+    "core/**/*",
+    "storage/**/*"
+  ]
 }

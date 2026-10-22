@@ -1,6 +1,7 @@
 import JSZip from 'jszip';
-import * as XLSX from 'xlsx';
 import { encodeXmlEntities } from '../document-parser/docx-parser';
+import { serializeCsv } from '../spreadsheet/csv';
+import { buildXlsxFromSheets } from '../spreadsheet/xlsx-xml';
 import { encodeStringToRtf } from '../replacement-engine/text-replacer';
 
 export interface StructuredContractContent {
@@ -345,20 +346,12 @@ export function buildXlsxBufferFromTables(
   paragraphs: string[],
   format: 'xlsx' | 'csv' = 'xlsx'
 ): Buffer {
-  const wb = XLSX.utils.book_new();
-  if (tables.length > 0) {
-    tables.forEach((tbl, idx) => {
-      const ws = XLSX.utils.aoa_to_sheet(tbl);
-      XLSX.utils.book_append_sheet(wb, ws, `Tableau_${idx + 1}`);
-    });
-  } else {
-    const rows = paragraphs.map((p) => [p]);
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-    XLSX.utils.book_append_sheet(wb, ws, 'Contrat');
-  }
+  // Moteur tableur interne (SheetJS retiré : vulnérabilités sans correctif npm).
+  const sheets = tables.length > 0
+    ? tables.map((tbl, idx) => ({ name: `Tableau_${idx + 1}`, rows: tbl }))
+    : [{ name: 'Contrat', rows: paragraphs.map((p) => [p]) }];
   if (format === 'csv') {
-    const csv = XLSX.utils.sheet_to_csv(wb.Sheets[wb.SheetNames[0]]);
-    return Buffer.from(csv, 'utf8');
+    return Buffer.from(serializeCsv(sheets[0].rows), 'utf8');
   }
-  return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
+  return buildXlsxFromSheets(sheets);
 }

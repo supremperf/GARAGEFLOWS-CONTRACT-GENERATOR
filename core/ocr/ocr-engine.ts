@@ -1,5 +1,12 @@
 import fs from 'fs';
 import path from 'path';
+import { ocrLanguageDirectories } from './local-language-fetch';
+
+/** Keep the logical ASAR parent tree: physical unpacked workers cannot resolve packed dependencies. */
+export function resolveOcrWorkerPath(resolve: (specifier: string) => string = require.resolve): string {
+  // Electron 28 supports worker_threads entry points inside ASAR, including unpacked entries.
+  return resolve('./tesseract-worker');
+}
 
 export interface OcrResult {
   text: string;
@@ -21,38 +28,46 @@ export async function runLocalOcrOnBuffer(
   const extractedSegments: string[] = [];
 
   // 1. Vérifier si un fichier de données Tesseract local (.traineddata) est présent dans le dossier local
-  const langCandidates = [
-    path.resolve(process.cwd(), 'resources', 'tessdata'),
-    path.resolve(__dirname, '../../../resources/tessdata'),
-    path.join((process as NodeJS.Process & { resourcesPath?: string }).resourcesPath || '', 'tessdata'),
-  ];
+  const langCandidates = ocrLanguageDirectories(__dirname, process.cwd(), (process as NodeJS.Process & { resourcesPath?: string }).resourcesPath);
   const localLangPath = langCandidates.find(
     (dir) => fs.existsSync(path.join(dir, 'fra.traineddata')) || fs.existsSync(path.join(dir, 'eng.traineddata'))
   );
   const hasLocalTrainedData = Boolean(localLangPath);
 
-  if (hasLocalTrainedData) {
+  // Tesseract/Leptonica accepts images, never raw PDF bytes. Keep the existing
+  // structural PDF fallback and report its limitation rather than crashing a worker.
+  const isPdf = buffer.subarray(0, 1024).toString('ascii').includes('%PDF-');
+  if (isPdf) warnings.push('OCR PDF : une rasterisation en images est nécessaire ; extraction structurelle locale uniquement.');
+  if (hasLocalTrainedData && !isPdf) {
     try {
       const Tesseract = await import('tesseract.js');
       const lang = fs.existsSync(path.join(localLangPath as string, 'fra.traineddata')) ? 'fra' : 'eng';
       const worker = await Tesseract.createWorker(lang, 1, {
         langPath: localLangPath,
         gzip: false,
+        workerPath: resolveOcrWorkerPath(),
+        cacheMethod: 'none',
+        // The job promise rejects below; avoid Tesseract's second, uncaught throw.
+        errorHandler: () => undefined,
       });
-      const ret = await worker.recognize(buffer);
-      await worker.terminate();
+      let ret;
+      try {
+        ret = await worker.recognize(buffer);
+      } finally {
+        await worker.terminate();
+      }
       const text = ret.data.text.trim();
       if (text) {
         return {
           text,
-          confidence: (ret.data.confidence || 80) / 100,
+          confidence: (ret.data.confidence ?? 80) / 100,
           engine: 'tesseract-local',
           lines: text.split(/\r?\n/).filter((l) => l.trim().length > 0),
           warnings,
         };
       }
-    } catch (err: any) {
-      warnings.push(`Avertissement moteur Tesseract local : ${err?.message || 'bascule sur extracteur local'}`);
+    } catch (err) {
+      warnings.push(`Avertissement moteur Tesseract local : ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 
@@ -89,7 +104,7 @@ export async function runLocalOcrOnBuffer(
     } else {
       // Extraction des séquences textuelles structurées (phrases contractuelles ou variables)
       const printableMatches = rawStr.match(
-        /[A-Za-zÀ-ÿ0-9\{\}\[\]«»'’,.;:!?€\/\-\s]{16,}/g
+        /[A-Za-zÀ-ÿ0-9{}[\]«»'’,.;:!?€/\-\s]{16,}/g
       );
       if (printableMatches) {
         for (const candidate of printableMatches) {

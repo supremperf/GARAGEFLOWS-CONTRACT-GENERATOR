@@ -6,6 +6,11 @@ import { api, importBundledExamples } from './services/app-service';
 import { OFFICIAL_VARIABLE_DICTIONARY } from '../core/variable-detection/dictionary';
 import { writeAppLog } from './security/logger';
 import { validateSafeFilePath } from './security/path-validator';
+import { SyncEngine } from '@garageflows/sync-core/engine/SyncEngine';
+import { SqlJsSyncStorage } from '@garageflows/sync-core/storage/SyncStorage';
+import { DeduplicationEngine } from '@garageflows/sync-core/deduplication/DeduplicationEngine';
+import { ConflictResolver } from '@garageflows/sync-core/conflict/ConflictResolver';
+import { registerContractGenSyncRoutes } from '@garageflows/sync-core/adapters/ContractGenAdapter';
 
 export interface ServerOptions {
   port?: number;
@@ -41,6 +46,211 @@ export function createApp(options: ServerOptions = {}) {
   const app = express();
   app.use(cors());
   app.use(express.json({ limit: '80mb' }));
+
+  // Initialize GarageFlows Sync Engine
+  let syncEngine: SyncEngine | null = null;
+  let syncStorage: SqlJsSyncStorage | null = null;
+  let deduplicationEngine: DeduplicationEngine | null = null;
+  let conflictResolver: ConflictResolver | null = null;
+
+  // Initialize sync engine after database is available
+  const initializeSyncEngine = async () => {
+    try {
+      // Dynamic import to avoid circular dependencies
+      const { getSqliteDatabase } = await import('../storage/database/sqlite-db');
+      const db = await getSqliteDatabase();
+
+      syncStorage = new SqlJsSyncStorage(db);
+      conflictResolver = new ConflictResolver();
+      deduplicationEngine = new DeduplicationEngine({
+        findAll: async () => {
+          const globals = await syncStorage!.globalList();
+          return globals.map(g => ({
+            globalId: g.globalId,
+            nexaId: g.nexaId,
+            contractGenId: g.contractGenId,
+            factureProId: g.factureProId,
+            civility: g.civility || '',
+            firstName: g.firstName || '',
+            lastName: g.lastName || '',
+            companyName: g.companyName || '',
+            legalForm: g.legalForm || '',
+            siren: g.siren || '',
+            siret: g.siret || '',
+            vatNumber: g.vatNumber || '',
+            vatSubject: g.vatSubject || false,
+            apeCode: g.apeCode,
+            email: g.email || '',
+            phone: g.phone || '',
+            mobile: g.mobile,
+            address: g.address || { line1: '', line2: '', postalCode: '', city: '', country: '' },
+            deliveryAddress: g.deliveryAddress,
+            legalRep: g.legalRep,
+            subscription: g.subscription,
+            notes: g.notes || '',
+            tags: g.tags || [],
+            isArchived: g.isArchived,
+            createdAt: g.createdAt,
+            updatedAt: g.updatedAt,
+            lastSyncedAt: g.lastSyncedAt,
+            fieldSources: g.fieldSources,
+          }));
+        },
+        findByGlobalId: async (globalId: string) => {
+          const g = await syncStorage!.globalGetById(globalId);
+          if (!g) return null;
+          return {
+            globalId: g.globalId,
+            nexaId: g.nexaId,
+            contractGenId: g.contractGenId,
+            factureProId: g.factureProId,
+            civility: g.civility || '',
+            firstName: g.firstName || '',
+            lastName: g.lastName || '',
+            companyName: g.companyName || '',
+            legalForm: g.legalForm || '',
+            siren: g.siren || '',
+            siret: g.siret || '',
+            vatNumber: g.vatNumber || '',
+            vatSubject: g.vatSubject || false,
+            apeCode: g.apeCode,
+            email: g.email || '',
+            phone: g.phone || '',
+            mobile: g.mobile,
+            address: g.address || { line1: '', line2: '', postalCode: '', city: '', country: '' },
+            deliveryAddress: g.deliveryAddress,
+            legalRep: g.legalRep,
+            subscription: g.subscription,
+            notes: g.notes || '',
+            tags: g.tags || [],
+            isArchived: g.isArchived,
+            createdAt: g.createdAt,
+            updatedAt: g.updatedAt,
+            lastSyncedAt: g.lastSyncedAt,
+            fieldSources: g.fieldSources,
+          };
+        },
+        findByLocalId: async (app: 'nexa' | 'contractgen' | 'facturepro', localId: string) => {
+          const g = await syncStorage!.globalGetByLocalId(app, localId);
+          if (!g) return null;
+          return {
+            globalId: g.globalId,
+            nexaId: g.nexaId,
+            contractGenId: g.contractGenId,
+            factureProId: g.factureProId,
+            civility: g.civility || '',
+            firstName: g.firstName || '',
+            lastName: g.lastName || '',
+            companyName: g.companyName || '',
+            legalForm: g.legalForm || '',
+            siren: g.siren || '',
+            siret: g.siret || '',
+            vatNumber: g.vatNumber || '',
+            vatSubject: g.vatSubject || false,
+            apeCode: g.apeCode,
+            email: g.email || '',
+            phone: g.phone || '',
+            mobile: g.mobile,
+            address: g.address || { line1: '', line2: '', postalCode: '', city: '', country: '' },
+            deliveryAddress: g.deliveryAddress,
+            legalRep: g.legalRep,
+            subscription: g.subscription,
+            notes: g.notes || '',
+            tags: g.tags || [],
+            isArchived: g.isArchived,
+            createdAt: g.createdAt,
+            updatedAt: g.updatedAt,
+            lastSyncedAt: g.lastSyncedAt,
+            fieldSources: g.fieldSources,
+          };
+        },
+        updateGlobalId: async (globalId: string, updates: Partial<any>) => {
+          await syncStorage!.globalUpdate(globalId, updates);
+        },
+        mergeInto: async (sourceGlobalId: string, targetGlobalId: string) => {
+          await syncStorage!.globalMergeInto(sourceGlobalId, targetGlobalId);
+        },
+      });
+
+      syncEngine = new SyncEngine({
+        storage: syncStorage,
+        deduplicationEngine: deduplicationEngine,
+        conflictResolver: conflictResolver,
+        config: {
+          enabled: true,
+          sourceApp: 'contractgen',
+          targetApps: ['nexa', 'facturepro'],
+          pushIntervalMs: 30000,
+          pullIntervalMs: 60000,
+          maxRetries: 5,
+          baseRetryDelayMs: 30000,
+          maxRetryDelayMs: 21600000,
+          autoMergeThreshold: 90,
+          notifyOnConflict: true,
+        },
+        getLocalCustomer: async (localId: string) => {
+          const client = await api.getClient(localId);
+          if (!client) return null;
+          const payload = JSON.parse(client.payload_json);
+          return {
+            globalId: payload.globalId,
+            contractGenId: client.id,
+            civility: payload.civility || '',
+            firstName: client.prenom,
+            lastName: client.nom,
+            birthDate: payload.birthDate,
+            birthPlace: payload.birthPlace,
+            companyName: client.entreprise,
+            legalForm: payload.legalForm,
+            siren: payload.siren,
+            siret: payload.siret,
+            vatNumber: payload.vatNumber,
+            vatSubject: payload.vatSubject,
+            apeCode: payload.apeCode,
+            email: client.email,
+            phone: client.telephone,
+            mobile: payload.mobile,
+            address: {
+              line1: payload.address?.line1 || '',
+              line2: payload.address?.line2 || '',
+              postalCode: payload.address?.postalCode || '',
+              city: client.ville,
+              country: payload.address?.country || 'France',
+            },
+            deliveryAddress: payload.deliveryAddress,
+            legalRep: payload.legalRep,
+            subscription: payload.subscription,
+            notes: payload.notes || '',
+            tags: payload.tags || [],
+            isArchived: payload.isArchived || false,
+            createdAt: client.created_at,
+            updatedAt: client.updated_at,
+            lastSyncedAt: payload.lastSyncedAt,
+          };
+        },
+        onRemoteEventReceived: async (event) => {
+          console.info(`[Sync] Received remote event: ${event.eventType} for ${event.globalId}`);
+        },
+        onConflictDetected: async (conflict) => {
+          console.warn(`[Sync] Conflict detected: ${conflict.fieldName} for ${conflict.globalId}`);
+        },
+      });
+
+      // Register Express sync routes
+      registerContractGenSyncRoutes(app, syncEngine, syncStorage, deduplicationEngine, conflictResolver, {
+        clients: {
+          create: async (input) => api.createClient(input),
+          update: async (id, patch) => api.updateClient(id, patch),
+          get: async (id) => api.getClient(id),
+        },
+      });
+    } catch (error) {
+      writeAppLog('ERROR', `Sync engine initialization failed: ${error}`);
+    }
+  };
+
+  // Initialize sync engine asynchronously
+  initializeSyncEngine();
 
   app.get('/api/dictionary', (_req, res) => {
     res.json(

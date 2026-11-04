@@ -17,6 +17,7 @@
     "typecheck": "tsc --noEmit && tsc -p tsconfig.electron.json --noEmit"
   },
   "dependencies": {
+    "@garageflows/sync-core": "file:../garageflows-sync-core/garageflows-sync-core-1.0.0.tgz",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "jszip": "^3.10.1",
